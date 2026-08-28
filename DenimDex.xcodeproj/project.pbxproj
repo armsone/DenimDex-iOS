@@ -1,0 +1,688 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BF_DenimDexApp /* DenimDexApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DenimDexApp /* DenimDexApp.swift */; };
+		BF_ContentView /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ContentView /* ContentView.swift */; };
+		BF_DenimTheme /* DenimTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DenimTheme /* DenimTheme.swift */; };
+		BF_EvidencePhotoRole /* EvidencePhotoRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_EvidencePhotoRole /* EvidencePhotoRole.swift */; };
+		BF_QuickValueResult /* QuickValueResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValueResult /* QuickValueResult.swift */; };
+		BF_QuickValuePhotoRoles /* QuickValuePhotoRoles.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValuePhotoRoles /* QuickValuePhotoRoles.swift */; };
+		BF_CollectionItem /* CollectionItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CollectionItem /* CollectionItem.swift */; };
+		BF_AIBIModels /* AIBIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIModels /* AIBIModels.swift */; };
+		BF_AIBIMediaPipeline /* AIBIMediaPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIMediaPipeline /* AIBIMediaPipeline.swift */; };
+		BF_AIBISession /* AIBISession.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBISession /* AIBISession.swift */; };
+		BF_AIBIWebViewRepresentable /* AIBIWebViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIWebViewRepresentable /* AIBIWebViewRepresentable.swift */; };
+		BF_AIBIProviderRegistry /* AIBIProviderRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIProviderRegistry /* AIBIProviderRegistry.swift */; };
+		BF_AIBILoginProbe /* AIBILoginProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBILoginProbe /* AIBILoginProbe.swift */; };
+		BF_QuickValuePromptBuilder /* QuickValuePromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValuePromptBuilder /* QuickValuePromptBuilder.swift */; };
+		BF_QuickValueResultValidator /* QuickValueResultValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValueResultValidator /* QuickValueResultValidator.swift */; };
+		BF_CountdownFormatter /* CountdownFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CountdownFormatter /* CountdownFormatter.swift */; };
+		BF_MarketValueCalculator /* MarketValueCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MarketValueCalculator /* MarketValueCalculator.swift */; };
+		BF_QuickValueImagePolicy /* QuickValueImagePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValueImagePolicy /* QuickValueImagePolicy.swift */; };
+		BF_HanAIPhotoDeduplicator /* HanAIPhotoDeduplicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_HanAIPhotoDeduplicator /* HanAIPhotoDeduplicator.swift */; };
+		BF_HanAIProduct /* HanAI in Frameworks */ = {isa = PBXBuildFile; productRef = PROD_HanAI /* HanAI */; };
+		BF_QuickValueRunner /* QuickValueRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValueRunner /* QuickValueRunner.swift */; };
+		BF_CameraCaptureView /* CameraCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CameraCaptureView /* CameraCaptureView.swift */; };
+		BF_ScanView /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ScanView /* ScanView.swift */; };
+		BF_QuickValueResultCard /* QuickValueResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValueResultCard /* QuickValueResultCard.swift */; };
+		BF_MyDenimListView /* MyDenimListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MyDenimListView /* MyDenimListView.swift */; };
+		BF_CollectionItemDetailView /* CollectionItemDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CollectionItemDetailView /* CollectionItemDetailView.swift */; };
+		BF_LearnView /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_LearnView /* LearnView.swift */; };
+		BF_SettingsView /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SettingsView /* SettingsView.swift */; };
+		BF_DenimDexSyncClient /* DenimDexSyncClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_DenimDexSyncClient /* DenimDexSyncClient.swift */; };
+		BF_SyncInviteView /* SyncInviteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SyncInviteView /* SyncInviteView.swift */; };
+		BF_SyncDisclosureView /* SyncDisclosureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_SyncDisclosureView /* SyncDisclosureView.swift */; };
+		BF_Assets /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR_Assets /* Assets.xcassets */; };
+		BF_PrivacyInfo /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FR_PrivacyInfo /* PrivacyInfo.xcprivacy */; };
+		BF_AIBIProvidersJSON /* aibi-providers.json in Resources */ = {isa = PBXBuildFile; fileRef = FR_AIBIProvidersJSON /* aibi-providers.json */; };
+		BF_AIBIRuntimeJS /* aibi-browser-runtime.js in Resources */ = {isa = PBXBuildFile; fileRef = FR_AIBIRuntimeJS /* aibi-browser-runtime.js */; };
+		BF_TestValidator /* QuickValueResultValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestValidator /* QuickValueResultValidatorTests.swift */; };
+		BF_TestPromptBuilder /* QuickValuePromptBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestPromptBuilder /* QuickValuePromptBuilderTests.swift */; };
+		BF_TestCountdown /* CountdownFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestCountdown /* CountdownFormatterTests.swift */; };
+		BF_TestPhotoRoles /* QuickValuePhotoRolesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestPhotoRoles /* QuickValuePhotoRolesTests.swift */; };
+		BF_TestMarketValue /* MarketValueCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestMarketValue /* MarketValueCalculatorTests.swift */; };
+		BF_TestImagePolicy /* QuickValueImagePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestImagePolicy /* QuickValueImagePolicyTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		PROXY_TESTS_ON_APP /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = PROJECT_OBJECT /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = TARGET_APP;
+			remoteInfo = DenimDex;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		FR_DenimDexApp /* DenimDexApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenimDexApp.swift; sourceTree = "<group>"; };
+		FR_ContentView /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FR_DenimTheme /* DenimTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenimTheme.swift; sourceTree = "<group>"; };
+		FR_EvidencePhotoRole /* EvidencePhotoRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidencePhotoRole.swift; sourceTree = "<group>"; };
+		FR_QuickValueResult /* QuickValueResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueResult.swift; sourceTree = "<group>"; };
+		FR_QuickValuePhotoRoles /* QuickValuePhotoRoles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValuePhotoRoles.swift; sourceTree = "<group>"; };
+		FR_CollectionItem /* CollectionItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionItem.swift; sourceTree = "<group>"; };
+		FR_AIBIModels /* AIBIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIModels.swift; sourceTree = "<group>"; };
+		FR_AIBIMediaPipeline /* AIBIMediaPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIMediaPipeline.swift; sourceTree = "<group>"; };
+		FR_AIBISession /* AIBISession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBISession.swift; sourceTree = "<group>"; };
+		FR_AIBIWebViewRepresentable /* AIBIWebViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIWebViewRepresentable.swift; sourceTree = "<group>"; };
+		FR_AIBIProviderRegistry /* AIBIProviderRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIProviderRegistry.swift; sourceTree = "<group>"; };
+		FR_AIBILoginProbe /* AIBILoginProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBILoginProbe.swift; sourceTree = "<group>"; };
+		FR_QuickValuePromptBuilder /* QuickValuePromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValuePromptBuilder.swift; sourceTree = "<group>"; };
+		FR_QuickValueResultValidator /* QuickValueResultValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueResultValidator.swift; sourceTree = "<group>"; };
+		FR_CountdownFormatter /* CountdownFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownFormatter.swift; sourceTree = "<group>"; };
+		FR_MarketValueCalculator /* MarketValueCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketValueCalculator.swift; sourceTree = "<group>"; };
+		FR_QuickValueImagePolicy /* QuickValueImagePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueImagePolicy.swift; sourceTree = "<group>"; };
+		FR_HanAIPhotoDeduplicator /* HanAIPhotoDeduplicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HanAIPhotoDeduplicator.swift; sourceTree = "<group>"; };
+		FR_QuickValueRunner /* QuickValueRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueRunner.swift; sourceTree = "<group>"; };
+		FR_CameraCaptureView /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureView.swift; sourceTree = "<group>"; };
+		FR_ScanView /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
+		FR_QuickValueResultCard /* QuickValueResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueResultCard.swift; sourceTree = "<group>"; };
+		FR_MyDenimListView /* MyDenimListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDenimListView.swift; sourceTree = "<group>"; };
+		FR_CollectionItemDetailView /* CollectionItemDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionItemDetailView.swift; sourceTree = "<group>"; };
+		FR_LearnView /* LearnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnView.swift; sourceTree = "<group>"; };
+		FR_SettingsView /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FR_DenimDexSyncClient /* DenimDexSyncClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenimDexSyncClient.swift; sourceTree = "<group>"; };
+		FR_SyncInviteView /* SyncInviteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncInviteView.swift; sourceTree = "<group>"; };
+		FR_SyncDisclosureView /* SyncDisclosureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncDisclosureView.swift; sourceTree = "<group>"; };
+		FR_Assets /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FR_PrivacyInfo /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		FR_AIBIProvidersJSON /* aibi-providers.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "aibi-providers.json"; sourceTree = "<group>"; };
+		FR_AIBIRuntimeJS /* aibi-browser-runtime.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "aibi-browser-runtime.js"; sourceTree = "<group>"; };
+		FR_TestValidator /* QuickValueResultValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueResultValidatorTests.swift; sourceTree = "<group>"; };
+		FR_TestPromptBuilder /* QuickValuePromptBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValuePromptBuilderTests.swift; sourceTree = "<group>"; };
+		FR_TestCountdown /* CountdownFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownFormatterTests.swift; sourceTree = "<group>"; };
+		FR_TestPhotoRoles /* QuickValuePhotoRolesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValuePhotoRolesTests.swift; sourceTree = "<group>"; };
+		FR_TestMarketValue /* MarketValueCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketValueCalculatorTests.swift; sourceTree = "<group>"; };
+		FR_TestImagePolicy /* QuickValueImagePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueImagePolicyTests.swift; sourceTree = "<group>"; };
+		FR_AppProduct /* DenimDex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DenimDex.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FR_TestsProduct /* DenimDexTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DenimDexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		PHASE_APP_FRAMEWORKS /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF_HanAIProduct,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		PHASE_TESTS_FRAMEWORKS /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		GRP_Main = {
+			isa = PBXGroup;
+			children = (
+				GRP_DenimDex,
+				GRP_Tests,
+				GRP_Products,
+			);
+			sourceTree = "<group>";
+		};
+		GRP_DenimDex /* DenimDex */ = {
+			isa = PBXGroup;
+			children = (
+				FR_DenimDexApp,
+				FR_ContentView,
+				GRP_Design,
+				GRP_Models,
+				GRP_AIBI,
+				GRP_Services,
+				GRP_Features,
+				FR_Assets,
+				FR_PrivacyInfo,
+			);
+			path = DenimDex;
+			sourceTree = "<group>";
+		};
+		GRP_Design /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				FR_DenimTheme,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		GRP_Models /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				FR_EvidencePhotoRole,
+				FR_QuickValueResult,
+				FR_QuickValuePhotoRoles,
+				FR_CollectionItem,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		GRP_AIBI /* AIBI */ = {
+			isa = PBXGroup;
+			children = (
+				FR_AIBIModels,
+				FR_AIBIMediaPipeline,
+				FR_AIBISession,
+				FR_AIBIWebViewRepresentable,
+				FR_AIBIProviderRegistry,
+				FR_AIBILoginProbe,
+				GRP_AIBIResources,
+			);
+			path = AIBI;
+			sourceTree = "<group>";
+		};
+		GRP_AIBIResources /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FR_AIBIProvidersJSON,
+				FR_AIBIRuntimeJS,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		GRP_Services /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				FR_QuickValuePromptBuilder,
+				FR_QuickValueResultValidator,
+				FR_CountdownFormatter,
+				FR_MarketValueCalculator,
+				FR_QuickValueImagePolicy,
+				FR_HanAIPhotoDeduplicator,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		GRP_Features /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				GRP_FeaturesScan,
+				GRP_FeaturesMyDenim,
+				GRP_FeaturesLearn,
+				GRP_FeaturesSettings,
+				GRP_FeaturesSync,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		GRP_FeaturesScan /* Scan */ = {
+			isa = PBXGroup;
+			children = (
+				FR_QuickValueRunner,
+				FR_CameraCaptureView,
+				FR_ScanView,
+				FR_QuickValueResultCard,
+			);
+			path = Scan;
+			sourceTree = "<group>";
+		};
+		GRP_FeaturesMyDenim /* MyDenim */ = {
+			isa = PBXGroup;
+			children = (
+				FR_MyDenimListView,
+				FR_CollectionItemDetailView,
+			);
+			path = MyDenim;
+			sourceTree = "<group>";
+		};
+		GRP_FeaturesLearn /* Learn */ = {
+			isa = PBXGroup;
+			children = (
+				FR_LearnView,
+			);
+			path = Learn;
+			sourceTree = "<group>";
+		};
+		GRP_FeaturesSettings /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				FR_SettingsView,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		GRP_FeaturesSync /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				FR_DenimDexSyncClient,
+				FR_SyncInviteView,
+				FR_SyncDisclosureView,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		GRP_Tests /* DenimDexTests */ = {
+			isa = PBXGroup;
+			children = (
+				FR_TestValidator,
+				FR_TestPromptBuilder,
+				FR_TestCountdown,
+				FR_TestPhotoRoles,
+				FR_TestMarketValue,
+				FR_TestImagePolicy,
+			);
+			path = DenimDexTests;
+			sourceTree = "<group>";
+		};
+		GRP_Products /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FR_AppProduct,
+				FR_TestsProduct,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TARGET_APP /* DenimDex */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CFGLIST_APP /* Build configuration list for PBXNativeTarget "DenimDex" */;
+			buildPhases = (
+				PHASE_APP_SOURCES,
+				PHASE_APP_FRAMEWORKS,
+				PHASE_APP_RESOURCES,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DenimDex;
+			packageProductDependencies = (
+				PROD_HanAI,
+			);
+			productName = DenimDex;
+			productReference = FR_AppProduct /* DenimDex.app */;
+			productType = "com.apple.product-type.application";
+		};
+		TARGET_TESTS /* DenimDexTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CFGLIST_TESTS /* Build configuration list for PBXNativeTarget "DenimDexTests" */;
+			buildPhases = (
+				PHASE_TESTS_SOURCES,
+				PHASE_TESTS_FRAMEWORKS,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DEPENDENCY_TESTS_ON_APP,
+			);
+			name = DenimDexTests;
+			productName = DenimDexTests;
+			productReference = FR_TestsProduct /* DenimDexTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PROJECT_OBJECT /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					TARGET_APP = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					TARGET_TESTS = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = TARGET_APP;
+					};
+				};
+			};
+			buildConfigurationList = CFGLIST_PROJECT /* Build configuration list for PBXProject "DenimDex" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = ko;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				ko,
+				en,
+				Base,
+			);
+			mainGroup = GRP_Main;
+			packageReferences = (
+				PKG_HanAI,
+			);
+			productRefGroup = GRP_Products /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				TARGET_APP,
+				TARGET_TESTS,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		PHASE_APP_RESOURCES /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF_Assets,
+				BF_PrivacyInfo,
+				BF_AIBIProvidersJSON,
+				BF_AIBIRuntimeJS,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		PHASE_APP_SOURCES /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF_DenimDexApp,
+				BF_ContentView,
+				BF_DenimTheme,
+				BF_EvidencePhotoRole,
+				BF_QuickValueResult,
+				BF_QuickValuePhotoRoles,
+				BF_CollectionItem,
+				BF_AIBIModels,
+				BF_AIBIMediaPipeline,
+				BF_AIBISession,
+				BF_AIBIWebViewRepresentable,
+				BF_AIBIProviderRegistry,
+				BF_AIBILoginProbe,
+				BF_QuickValuePromptBuilder,
+				BF_QuickValueResultValidator,
+				BF_CountdownFormatter,
+				BF_MarketValueCalculator,
+				BF_QuickValueImagePolicy,
+				BF_HanAIPhotoDeduplicator,
+				BF_QuickValueRunner,
+				BF_CameraCaptureView,
+				BF_ScanView,
+				BF_QuickValueResultCard,
+				BF_MyDenimListView,
+				BF_CollectionItemDetailView,
+				BF_LearnView,
+				BF_SettingsView,
+				BF_DenimDexSyncClient,
+				BF_SyncInviteView,
+				BF_SyncDisclosureView,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		PHASE_TESTS_SOURCES /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF_TestValidator,
+				BF_TestPromptBuilder,
+				BF_TestCountdown,
+				BF_TestPhotoRoles,
+				BF_TestMarketValue,
+				BF_TestImagePolicy,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DEPENDENCY_TESTS_ON_APP /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = TARGET_APP;
+			targetProxy = PROXY_TESTS_ON_APP /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		PKG_HanAI /* HanAI */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../HanAI;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		PROD_HanAI /* HanAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = PKG_HanAI /* HanAI */;
+			productName = HanAI;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin XCBuildConfiguration section */
+		CFG_APP_DEBUG /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = T7B4EPLHPK;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSCameraUsageDescription = "빈티지 데님 증거 사진을 촬영합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "촬영한 빈티지 데님 사진을 사진 보관함에 저장합니다.";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CFG_APP_RELEASE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = T7B4EPLHPK;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSCameraUsageDescription = "빈티지 데님 증거 사진을 촬영합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "촬영한 빈티지 데님 사진을 사진 보관함에 저장합니다.";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CFG_TESTS_DEBUG /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDexTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DenimDex.app/DenimDex";
+			};
+			name = Debug;
+		};
+		CFG_TESTS_RELEASE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDexTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DenimDex.app/DenimDex";
+			};
+			name = Release;
+		};
+		CFG_PROJECT_DEBUG /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CFG_PROJECT_RELEASE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CFGLIST_APP /* Build configuration list for PBXNativeTarget "DenimDex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFG_APP_DEBUG,
+				CFG_APP_RELEASE,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CFGLIST_TESTS /* Build configuration list for PBXNativeTarget "DenimDexTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFG_TESTS_DEBUG,
+				CFG_TESTS_RELEASE,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CFGLIST_PROJECT /* Build configuration list for PBXProject "DenimDex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFG_PROJECT_DEBUG,
+				CFG_PROJECT_RELEASE,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PROJECT_OBJECT /* Project object */;
+}
