@@ -5,14 +5,14 @@ members:
   ios:
     path: /Users/armsone/git/DenimDex-iOS
     bundle_id: com.armsone.DenimDex
-    version_name: 0.1.0
-    display_build: 202608290731
+    version_name: 0.2.0
+    display_build: 202608291019
   android:
     path: /Users/armsone/git/DenimDex-Android
     application_id: com.armsone.denimdex
-    version_name: 0.1.0
-    version_code: 346051
-    display_build: 202608290731
+    version_name: 0.2.0
+    version_code: 346052
+    display_build: 202608291019
     min_sdk: 26
     target_sdk: 37
 capabilities:
@@ -41,17 +41,21 @@ capabilities:
     ios: implemented
     android: implemented_source_only
   - id: DD-RESULT-001
-    contract: Parse QuickValue schemaVersion 2 and task quick_value with strict then flexible numeric normalization and an observed-photo hallucination guard.
-    ios: implemented
+    contract: Parse QuickValue schemaVersion 3 and task quick_value with strict then flexible numeric normalization, product variant, estimated production year and factory, conservative rarity, fair-purchase ranges, and an observed-photo hallucination guard.
+    ios: unit_tested
+    android: unit_tested_source
+  - id: DD-RARITY-001
+    contract: Present rarity as a conservative estimate with an explicit level, short summary, and concrete reasons; insufficient evidence must remain unknown or low rather than implying verified scarcity.
+    ios: unit_tested
     android: unit_tested_source
   - id: DD-MARKET-001
-    contract: Show Korea and Japan estimated sale ranges and net proceeds, retain signed cross-market losses, and never clamp cross-market margins to zero.
-    ios: implemented
+    contract: Show distinct Korea and Japan fair-purchase ranges, estimated sale ranges, and net proceeds; retain signed cross-market losses and never clamp cross-market margins to zero.
+    ios: unit_tested
     android: unit_tested_source
   - id: DD-ARCHIVE-001
-    contract: Persist saved valuation records and copied photos locally; support search, detail, title and notes editing, verification state, item deletion, and clear-all.
-    ios: implemented
-    android: implemented_source_only
+    contract: Persist saved valuation records, copied photos, product variant, estimated production year and factory, rarity, and fair-purchase ranges locally; support search, detail, title and notes editing, verification state, item deletion, and clear-all with migration-safe legacy defaults.
+    ios: unit_tested
+    android: built_and_unit_tested_source
   - id: DD-SYNC-001
     contract: NAS sync remains visibly unavailable and DisabledDenimDexSyncClient must fail as not configured; no false successful sync state is allowed.
     ios: implemented
@@ -98,7 +102,10 @@ verification:
   android_behavior_smoke: archive_navigation_and_photo_picker_cancel_passed
   ios_simulator_runtime: passed_iphone_17_pro_default_scan
   live_chatgpt_aibi: signed_out_login_surface_only
-  rendered_visual_parity: partial_default_scan_pair_only
+  quick_value_v3_ios_tests: passed_52_tests
+  quick_value_v3_android_unit_tests: passed
+  quick_value_v3_android_assemble_debug: passed
+  rendered_visual_parity: partial_default_scan_pair_only_v3_result_not_recaptured
   parity_ledger: /Users/armsone/git/DenimDex-Android/.parity/ledger.json
 deferred_or_open:
   - Android Scan expanded-width master-detail is not yet implemented.
@@ -106,4 +113,5 @@ deferred_or_open:
   - Tablet and Google TV runtime captures are absent; the phone path was exercised on SM-F968N.
   - Live ChatGPT authentication, multi-image attachment, cancellation, timeout, and stable completion traces are absent.
   - Current paired iOS runtime captures are absent for archive, guide, settings, dialogs, results, tablet, and accessibility states.
+  - Quick Value V3 product, rarity, fair-price, estimated-production-year, and estimated-factory result surfaces have source and automated-test coverage but no paired post-change runtime captures.
   - The two supplied iOS reference PNGs are byte-identical, so they do not prove two distinct route states.

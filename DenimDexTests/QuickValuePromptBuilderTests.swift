@@ -12,7 +12,7 @@ final class QuickValuePromptBuilderTests: XCTestCase {
         let prompt = QuickValuePromptBuilder.buildPrompt(photoRoles: ["photo_1", "photo_2"])
         XCTAssertTrue(prompt.contains("```json"))
         XCTAssertTrue(prompt.contains("\"task\": \"quick_value\""))
-        XCTAssertTrue(prompt.contains("\"schemaVersion\": 2"))
+        XCTAssertTrue(prompt.contains("\"schemaVersion\": 3"))
     }
 
     func testPromptStatesQuickEstimateDisclaimerRequirement() {
@@ -34,5 +34,17 @@ final class QuickValuePromptBuilderTests: XCTestCase {
         XCTAssertTrue(prompt.contains("koreaSaleRange"))
         XCTAssertTrue(prompt.contains("japanSaleRange"))
         XCTAssertTrue(prompt.contains("jpyToKrwRate"))
+    }
+
+    func testPromptRequestsRarityAndFairPurchaseFields() {
+        let prompt = QuickValuePromptBuilder.buildPrompt(photoRoles: ["photo_1"])
+        XCTAssertTrue(prompt.contains("rarityLevel"))
+        XCTAssertTrue(prompt.contains("raritySummary"))
+        XCTAssertTrue(prompt.contains("rarityReasons"))
+        XCTAssertTrue(prompt.contains("koreaFairPurchaseRange"))
+        XCTAssertTrue(prompt.contains("japanFairPurchaseRange"))
+        XCTAssertTrue(prompt.contains("estimatedProductionYear"))
+        XCTAssertTrue(prompt.contains("estimatedFactory"))
+        XCTAssertTrue(prompt.contains("extremely_rare"))
     }
 }

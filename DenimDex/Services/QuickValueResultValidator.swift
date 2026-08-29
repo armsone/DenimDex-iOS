@@ -1,6 +1,6 @@
 import Foundation
 
-/// 기술서 10.3절 "결과 검증" 규칙을 그대로 구현한다(V2, 한국·일본 이원 시장).
+/// 기술서 10.3절 "결과 검증" 규칙을 그대로 구현한다(V3, 한국·일본 이원 시장).
 /// 규칙을 하나라도 어기면 결과를 거부하고, 호출자는 브라우저를 유지하거나 수동 가져오기를 안내해야 한다.
 enum QuickValueValidationError: Error, Equatable {
     case jsonParsingFailed
@@ -18,6 +18,7 @@ enum QuickValueResultValidator {
     private static let allowedConfidence = Set(QuickValueConfidence.allCases.map(\.rawValue))
     private static let allowedCondition = Set(QuickValueCondition.allCases.map(\.rawValue))
     private static let allowedCertainty = Set(ObservationCertainty.allCases.map(\.rawValue))
+    private static let allowedRarity = Set(QuickValueRarity.allCases.map(\.rawValue))
 
     /// - Parameter sentPhotoRoles: 이번 작업에서 실제로 전송한 사진 식별자(`photo_1` 등). 관찰 근거가
     ///   이 밖의 식별자를 가리키면 거부한다.
@@ -31,11 +32,12 @@ enum QuickValueResultValidator {
             return .failure(.jsonParsingFailed)
         }
 
-        guard result.schemaVersion == 2 else { return .failure(.schemaVersionMismatch) }
+        guard result.schemaVersion == 3 else { return .failure(.schemaVersionMismatch) }
         guard result.task == "quick_value" else { return .failure(.taskMismatch) }
 
         guard allowedConfidence.contains(result.confidence) else { return .failure(.disallowedEnumValue(field: "confidence")) }
         guard allowedCondition.contains(result.condition) else { return .failure(.disallowedEnumValue(field: "condition")) }
+        guard allowedRarity.contains(result.rarityLevel) else { return .failure(.disallowedEnumValue(field: "rarityLevel")) }
         for observation in result.observations {
             guard allowedCertainty.contains(observation.certainty) else {
                 return .failure(.disallowedEnumValue(field: "observations.certainty"))
@@ -46,6 +48,10 @@ enum QuickValueResultValidator {
         guard result.koreaSaleRange.low <= result.koreaSaleRange.high else { return .failure(.lowGreaterThanHigh) }
         guard result.japanSaleRange.low >= 0, result.japanSaleRange.high >= 0 else { return .failure(.negativeValue) }
         guard result.japanSaleRange.low <= result.japanSaleRange.high else { return .failure(.lowGreaterThanHigh) }
+        guard result.koreaFairPurchaseRange.low >= 0, result.koreaFairPurchaseRange.high >= 0 else { return .failure(.negativeValue) }
+        guard result.koreaFairPurchaseRange.low <= result.koreaFairPurchaseRange.high else { return .failure(.lowGreaterThanHigh) }
+        guard result.japanFairPurchaseRange.low >= 0, result.japanFairPurchaseRange.high >= 0 else { return .failure(.negativeValue) }
+        guard result.japanFairPurchaseRange.low <= result.japanFairPurchaseRange.high else { return .failure(.lowGreaterThanHigh) }
         guard result.jpyToKrwRate > 0 else { return .failure(.invalidExchangeRate) }
 
         let allowedRoles = Set(sentPhotoRoles)
@@ -72,7 +78,13 @@ enum QuickValueResultValidator {
               let koreaHigh = integer(koreaRange["high"]),
               let japanRange = root["japanSaleRange"] as? [String: Any],
               let japanLow = integer(japanRange["low"]),
-              let japanHigh = integer(japanRange["high"]) else { return nil }
+              let japanHigh = integer(japanRange["high"]),
+              let koreaFairRange = root["koreaFairPurchaseRange"] as? [String: Any],
+              let koreaFairLow = integer(koreaFairRange["low"]),
+              let koreaFairHigh = integer(koreaFairRange["high"]),
+              let japanFairRange = root["japanFairPurchaseRange"] as? [String: Any],
+              let japanFairLow = integer(japanFairRange["low"]),
+              let japanFairHigh = integer(japanFairRange["high"]) else { return nil }
 
         let observations = (root["observations"] as? [[String: Any]] ?? []).compactMap { value -> QuickValueResult.Observation? in
             guard let feature = string(value["feature"]),
@@ -88,12 +100,20 @@ enum QuickValueResultValidator {
             productGuess: .init(
                 brand: string(product["brand"]) ?? "",
                 model: string(product["model"]) ?? "",
-                era: string(product["era"]) ?? ""
+                era: string(product["era"]) ?? "",
+                variant: string(product["variant"]) ?? "",
+                estimatedProductionYear: string(product["estimatedProductionYear"]) ?? "",
+                estimatedFactory: string(product["estimatedFactory"]) ?? ""
             ),
             summary: string(root["summary"]) ?? "",
             confidence: (string(root["confidence"]) ?? "unknown").lowercased(),
             condition: (string(root["condition"]) ?? "unknown").lowercased(),
+            rarityLevel: (string(root["rarityLevel"]) ?? "unknown").lowercased(),
+            raritySummary: string(root["raritySummary"]) ?? "",
+            rarityReasons: strings(root["rarityReasons"]),
+            koreaFairPurchaseRange: .init(low: koreaFairLow, high: koreaFairHigh),
             koreaSaleRange: .init(low: koreaLow, high: koreaHigh),
+            japanFairPurchaseRange: .init(low: japanFairLow, high: japanFairHigh),
             japanSaleRange: .init(low: japanLow, high: japanHigh),
             jpyToKrwRate: double(root["jpyToKrwRate"]) ?? -1,
             observations: observations,

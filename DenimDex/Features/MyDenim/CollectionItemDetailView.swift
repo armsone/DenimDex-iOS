@@ -48,6 +48,11 @@ struct CollectionItemDetailView: View {
                     LabeledContent("브랜드", value: item.brandGuess.isEmpty ? "확인되지 않음" : item.brandGuess)
                     LabeledContent("모델", value: item.modelGuess.isEmpty ? "확인되지 않음" : item.modelGuess)
                     LabeledContent("추정 연대", value: item.eraGuess.isEmpty ? "확인되지 않음" : item.eraGuess)
+                    LabeledContent("추정 생산연도", value: item.estimatedProductionYear.flatMap { $0.isEmpty ? nil : $0 } ?? "확인되지 않음")
+                    LabeledContent("추정 제조공장", value: item.estimatedFactory.flatMap { $0.isEmpty ? nil : $0 } ?? "확인되지 않음")
+                    if let variant = item.productVariant, !variant.isEmpty {
+                        LabeledContent("세부 변형", value: variant)
+                    }
                     LabeledContent("컨디션", value: item.condition.displayName)
                     LabeledContent("판단 신뢰도", value: item.confidence.displayName)
                     LabeledContent("기록일", value: item.createdAt.formatted(date: .abbreviated, time: .omitted))
@@ -65,6 +70,50 @@ struct CollectionItemDetailView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .denimCard()
+
+                if item.rarityLevel != .unknown || !(item.raritySummary ?? "").isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("희귀도")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Label(item.rarityLevel.displayName, systemImage: item.rarityLevel.iconName)
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(DenimTheme.indigoBright)
+                        }
+                        if let raritySummary = item.raritySummary, !raritySummary.isEmpty {
+                            Text(raritySummary)
+                                .font(.subheadline)
+                                .foregroundStyle(DenimTheme.inkSoft)
+                        }
+                        if let reasons = item.rarityReasons, !reasons.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                ForEach(reasons, id: \.self) { reason in
+                                    Label(reason, systemImage: "checkmark").font(.caption)
+                                }
+                            }
+                        }
+                        Text("희귀도는 AI 추정이며 객관적으로 검증된 희소성이 아닙니다.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .denimCard()
+                }
+
+                if let koreaFair = item.koreaFairPurchaseRange, let japanFair = item.japanFairPurchaseRange {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("적정 매입가")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        LabeledContent("한국", value: formattedRange(koreaFair, currencyCode: "KRW"))
+                        LabeledContent("일본", value: formattedRange(japanFair, currencyCode: "JPY"))
+                    }
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .denimCard()
+                }
 
                 Picker("확인 상태", selection: $item.verificationStateRaw) {
                     Text(VerificationState.aiEstimate.displayName).tag(VerificationState.aiEstimate.rawValue)
@@ -120,5 +169,13 @@ struct CollectionItemDetailView: View {
     private func save() {
         item.updatedAt = .now
         try? modelContext.save()
+    }
+
+    private func formattedRange(_ range: QuickValueResult.ValueRange, currencyCode: String) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        let low = formatter.string(from: NSNumber(value: range.low)) ?? "\(range.low)"
+        let high = formatter.string(from: NSNumber(value: range.high)) ?? "\(range.high)"
+        return "\(currencyCode) \(low) ~ \(high)"
     }
 }

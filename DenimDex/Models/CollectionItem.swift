@@ -54,6 +54,18 @@ final class CollectionItem {
     var japanValueHigh: Int?
     var jpyToKrwRateStored: Double?
 
+    // Quick Value V3 — 제품 변형, 희귀도, 적정 매입가 범위. 기존 저장 항목은 전부 nil로 남아 있을 수 있다.
+    var productVariant: String?
+    var estimatedProductionYear: String?
+    var estimatedFactory: String?
+    var rarityLevelRaw: String?
+    var raritySummary: String?
+    var rarityReasons: [String]?
+    var koreaFairPurchaseLow: Int?
+    var koreaFairPurchaseHigh: Int?
+    var japanFairPurchaseLow: Int?
+    var japanFairPurchaseHigh: Int?
+
     /// 검증을 통과한 원본 Quick Value JSON. 근거 조사 등 후속 기능이 참조할 수 있도록 보관한다.
     var quickValueJSON: String
 
@@ -94,6 +106,16 @@ final class CollectionItem {
         self.japanValueLow = result.japanSaleRange.low
         self.japanValueHigh = result.japanSaleRange.high
         self.jpyToKrwRateStored = result.jpyToKrwRate
+        self.productVariant = result.productGuess.variant
+        self.estimatedProductionYear = result.productGuess.estimatedProductionYear
+        self.estimatedFactory = result.productGuess.estimatedFactory
+        self.rarityLevelRaw = result.rarityLevel
+        self.raritySummary = result.raritySummary
+        self.rarityReasons = result.rarityReasons
+        self.koreaFairPurchaseLow = result.koreaFairPurchaseRange.low
+        self.koreaFairPurchaseHigh = result.koreaFairPurchaseRange.high
+        self.japanFairPurchaseLow = result.japanFairPurchaseRange.low
+        self.japanFairPurchaseHigh = result.japanFairPurchaseRange.high
         self.quickValueJSON = quickValueJSON
         self.userNotes = userNotes
         self.verificationStateRaw = VerificationState.aiEstimate.rawValue
@@ -120,6 +142,23 @@ final class CollectionItem {
     /// 일본(JPY) 예상 판매가 범위. V2 이전에 저장된 항목은 nil이다.
     var japanSaleRange: QuickValueResult.ValueRange? {
         guard let low = japanValueLow, let high = japanValueHigh else { return nil }
+        return .init(low: low, high: high)
+    }
+
+    /// 희귀도 등급. V3 이전에 저장된 항목은 `.unknown`으로 처리한다.
+    var rarityLevel: QuickValueRarity {
+        rarityLevelRaw.flatMap(QuickValueRarity.init(rawValue:)) ?? .unknown
+    }
+
+    /// 한국(KRW) 적정 매입가 범위. V3 이전에 저장된 항목은 nil이다.
+    var koreaFairPurchaseRange: QuickValueResult.ValueRange? {
+        guard let low = koreaFairPurchaseLow, let high = koreaFairPurchaseHigh else { return nil }
+        return .init(low: low, high: high)
+    }
+
+    /// 일본(JPY) 적정 매입가 범위. V3 이전에 저장된 항목은 nil이다.
+    var japanFairPurchaseRange: QuickValueResult.ValueRange? {
+        guard let low = japanFairPurchaseLow, let high = japanFairPurchaseHigh else { return nil }
         return .init(low: low, high: high)
     }
 

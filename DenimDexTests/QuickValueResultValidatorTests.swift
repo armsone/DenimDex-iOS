@@ -6,13 +6,18 @@ final class QuickValueResultValidatorTests: XCTestCase {
 
     private func validJSON(overrides: (inout [String: Any]) -> Void = { _ in }) -> String {
         var dict: [String: Any] = [
-            "schemaVersion": 2,
+            "schemaVersion": 3,
             "task": "quick_value",
-            "productGuess": ["brand": "Levi's", "model": "501", "era": "판단 어려움"],
+            "productGuess": ["brand": "Levi's", "model": "501", "era": "판단 어려움", "variant": "", "estimatedProductionYear": "1998~2001년 추정", "estimatedFactory": "미국 555 공장 추정"],
             "summary": "요약",
             "confidence": "medium",
             "condition": "fair",
+            "rarityLevel": "uncommon",
+            "raritySummary": "희귀도 요약",
+            "rarityReasons": ["근거1"],
+            "koreaFairPurchaseRange": ["low": 60000, "high": 140000],
             "koreaSaleRange": ["low": 80000, "high": 180000],
+            "japanFairPurchaseRange": ["low": 6000, "high": 14000],
             "japanSaleRange": ["low": 8000, "high": 18000],
             "jpyToKrwRate": 9.1,
             "observations": [
@@ -34,6 +39,11 @@ final class QuickValueResultValidatorTests: XCTestCase {
             XCTAssertEqual(value.productGuess.brand, "Levi's")
             XCTAssertEqual(value.koreaSaleRange.low, 80000)
             XCTAssertEqual(value.japanSaleRange.low, 8000)
+            XCTAssertEqual(value.koreaFairPurchaseRange.low, 60000)
+            XCTAssertEqual(value.japanFairPurchaseRange.low, 6000)
+            XCTAssertEqual(value.rarityLevel, "uncommon")
+            XCTAssertEqual(value.productGuess.estimatedProductionYear, "1998~2001년 추정")
+            XCTAssertEqual(value.productGuess.estimatedFactory, "미국 555 공장 추정")
             XCTAssertEqual(value.jpyToKrwRate, 9.1)
         case .failure(let error):
             XCTFail("Expected success, got \(error)")
@@ -66,7 +76,7 @@ final class QuickValueResultValidatorTests: XCTestCase {
     }
 
     func testRejectsSchemaVersionMismatch() {
-        let json = validJSON { $0["schemaVersion"] = 1 }
+        let json = validJSON { $0["schemaVersion"] = 2 }
         let result = QuickValueResultValidator.validate(rawText: json, sentPhotoRoles: sentRoles)
         assertFails(result, .schemaVersionMismatch)
     }
@@ -87,6 +97,36 @@ final class QuickValueResultValidatorTests: XCTestCase {
         let json = validJSON { $0["condition"] = "mint_and_perfect" }
         let result = QuickValueResultValidator.validate(rawText: json, sentPhotoRoles: sentRoles)
         assertFails(result, .disallowedEnumValue(field: "condition"))
+    }
+
+    func testRejectsDisallowedRarityLevelValue() {
+        let json = validJSON { $0["rarityLevel"] = "legendary" }
+        let result = QuickValueResultValidator.validate(rawText: json, sentPhotoRoles: sentRoles)
+        assertFails(result, .disallowedEnumValue(field: "rarityLevel"))
+    }
+
+    func testRejectsNegativeKoreaFairPurchaseValue() {
+        let json = validJSON { $0["koreaFairPurchaseRange"] = ["low": -1000, "high": 5000] }
+        let result = QuickValueResultValidator.validate(rawText: json, sentPhotoRoles: sentRoles)
+        assertFails(result, .negativeValue)
+    }
+
+    func testRejectsKoreaFairPurchaseLowGreaterThanHigh() {
+        let json = validJSON { $0["koreaFairPurchaseRange"] = ["low": 200000, "high": 100000] }
+        let result = QuickValueResultValidator.validate(rawText: json, sentPhotoRoles: sentRoles)
+        assertFails(result, .lowGreaterThanHigh)
+    }
+
+    func testRejectsNegativeJapanFairPurchaseValue() {
+        let json = validJSON { $0["japanFairPurchaseRange"] = ["low": -1000, "high": 5000] }
+        let result = QuickValueResultValidator.validate(rawText: json, sentPhotoRoles: sentRoles)
+        assertFails(result, .negativeValue)
+    }
+
+    func testRejectsJapanFairPurchaseLowGreaterThanHigh() {
+        let json = validJSON { $0["japanFairPurchaseRange"] = ["low": 20000, "high": 10000] }
+        let result = QuickValueResultValidator.validate(rawText: json, sentPhotoRoles: sentRoles)
+        assertFails(result, .lowGreaterThanHigh)
     }
 
     func testRejectsNegativeKoreaValue() {
@@ -148,13 +188,15 @@ final class QuickValueResultValidatorTests: XCTestCase {
     func testNormalizesFormattedPriceStringsAndMissingOptionalArrays() {
         let json = """
         {
-          "schemaVersion": "2",
+          "schemaVersion": "3",
           "task": "quick_value",
           "productGuess": {"brand": "Levi's", "model": "501", "era": "1990s"},
           "summary": "빠른 추정",
           "confidence": "MEDIUM",
           "condition": "GOOD",
+          "koreaFairPurchaseRange": {"low": "60,000원", "high": "120,000원"},
           "koreaSaleRange": {"low": "80,000원", "high": "150,000원"},
+          "japanFairPurchaseRange": {"low": "6,000엔", "high": "12,000엔"},
           "japanSaleRange": {"low": "8,000엔", "high": "15,000엔"},
           "jpyToKrwRate": "9.1"
         }
@@ -166,6 +208,15 @@ final class QuickValueResultValidatorTests: XCTestCase {
             XCTAssertEqual(value.koreaSaleRange.high, 150_000)
             XCTAssertEqual(value.japanSaleRange.low, 8_000)
             XCTAssertEqual(value.japanSaleRange.high, 15_000)
+            XCTAssertEqual(value.koreaFairPurchaseRange.low, 60_000)
+            XCTAssertEqual(value.koreaFairPurchaseRange.high, 120_000)
+            XCTAssertEqual(value.japanFairPurchaseRange.low, 6_000)
+            XCTAssertEqual(value.japanFairPurchaseRange.high, 12_000)
+            XCTAssertEqual(value.productGuess.variant, "")
+            XCTAssertEqual(value.productGuess.estimatedProductionYear, "")
+            XCTAssertEqual(value.productGuess.estimatedFactory, "")
+            XCTAssertEqual(value.rarityLevel, "unknown")
+            XCTAssertEqual(value.rarityReasons, [])
             XCTAssertEqual(value.jpyToKrwRate, 9.1)
         case .failure(let error):
             XCTFail("Expected normalized result, got \(error)")
