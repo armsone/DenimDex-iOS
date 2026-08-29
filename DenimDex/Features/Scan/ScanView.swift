@@ -4,6 +4,11 @@ import SwiftData
 import UniformTypeIdentifiers
 
 struct ScanView: View {
+    private enum ScrollTarget: Hashable {
+        case analyzeButton
+        case progress
+    }
+
     @AppStorage(DenimDexSettingsKeys.didAcknowledgeAITransfer) private var didAcknowledgeAITransfer = false
     @Environment(\.modelContext) private var modelContext
 
@@ -30,49 +35,61 @@ struct ScanView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 22) {
-                    header
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(spacing: 22) {
+                        header
 
-                    photoCollector
+                        photoCollector
 
-                    Button {
-                        requestValueAnalysis()
-                    } label: {
-                        Label("가치 확인하기", systemImage: "sparkles")
-                    }
-                    .buttonStyle(.denimPrimary)
-                    .disabled(!readyToAnalyze || runner.state == .running)
-                    .accessibilityHint("사진을 ChatGPT로 보내 한국·일본 가격 범위를 확인합니다")
+                        Button {
+                            requestValueAnalysis()
+                        } label: {
+                            Label("가치 확인하기", systemImage: "sparkles")
+                        }
+                        .buttonStyle(.denimPrimary)
+                        .disabled(!readyToAnalyze || runner.state == .running)
+                        .accessibilityHint("사진을 ChatGPT로 보내 한국·일본 가격 범위를 확인합니다")
+                        .id(ScrollTarget.analyzeButton)
 
-                    if !readyToAnalyze {
-                        Text("사진 한 장부터 시작할 수 있어요. 원본은 30장까지 담고, 가장 선명한 사진을 골라 분석합니다.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
+                        if !readyToAnalyze {
+                            Text("사진 한 장부터 시작할 수 있어요. 원본은 30장까지 담고, 가장 선명한 사진을 골라 분석합니다.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
 
-                    if runner.state == .running, !runner.session.isVisibleBrowserPresented {
-                        runningPanel
-                    }
+                        if runner.state == .running, !runner.session.isVisibleBrowserPresented {
+                            runningPanel
+                                .id(ScrollTarget.progress)
+                        }
 
-                    if case .succeeded(let result, let rawJSON) = runner.state {
-                        QuickValueResultCard(
-                            result: result,
-                            onSave: { saveToCollection(result: result, rawJSON: rawJSON) },
-                            onAddRequestedPhoto: { runner.reset() },
-                            onStartOver: { runner.reset() }
-                        )
-                    }
+                        if case .succeeded(let result, let rawJSON) = runner.state {
+                            QuickValueResultCard(
+                                result: result,
+                                onSave: { saveToCollection(result: result, rawJSON: rawJSON) },
+                                onAddRequestedPhoto: { runner.reset() },
+                                onStartOver: { runner.reset() }
+                            )
+                        }
 
-                    if case .failed(let message) = runner.state {
-                        errorPanel(message: message, retryLabel: "다시 시도")
+                        if case .failed(let message) = runner.state {
+                            errorPanel(message: message, retryLabel: "다시 시도")
+                        }
+                        if runner.state == .timedOut {
+                            errorPanel(message: "분석이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도해주세요.", retryLabel: "다시 시도")
+                        }
                     }
-                    if runner.state == .timedOut {
-                        errorPanel(message: "분석이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도해주세요.", retryLabel: "다시 시도")
-                    }
+                    .padding(.horizontal, 18)
                 }
-                .padding(.horizontal, 18)
+                .onChange(of: photos.count) { previousCount, currentCount in
+                    guard currentCount > previousCount else { return }
+                    scrollTo(.analyzeButton, anchor: .bottom, using: scrollProxy)
+                }
+                .onChange(of: runner.state) { _, state in
+                    guard state == .running else { return }
+                    scrollTo(.progress, anchor: .bottom, using: scrollProxy)
+                }
             }
             // 스크롤 영역 자체를 상·하 안전영역에서 같은 거리만큼 안쪽으로 둔다.
             // 따라서 스크롤 중에도 다이내믹 아일랜드나 하단 홈/탭 영역과 겹치지 않는다.
@@ -156,6 +173,20 @@ struct ScanView: View {
                 Text("현재 감정을 위해 담은 사진만 비워집니다. 사진 앱과 아카이브의 원본은 그대로 유지됩니다.")
             }
             .onAppear { loginStore.refresh() }
+        }
+    }
+
+    private func scrollTo(
+        _ target: ScrollTarget,
+        anchor: UnitPoint,
+        using proxy: ScrollViewProxy
+    ) {
+        Task { @MainActor in
+            // 상태 변경으로 대상 뷰가 배치된 다음 프레임에 스크롤한다.
+            await Task.yield()
+            withAnimation(.easeInOut(duration: 0.35)) {
+                proxy.scrollTo(target, anchor: anchor)
+            }
         }
     }
 
@@ -292,15 +323,21 @@ struct ScanView: View {
 
     @ViewBuilder
     private func photoThumbnail(data: Data, index: Int) -> some View {
+        // 그리드 셀 크기는 사진 자체의 종횡비가 아니라 오직 열 너비로만 결정되어야
+        // 모든 타일이 같은 정사각형이 된다. Color.clear에 aspectRatio(fit)을 걸어
+        // 크기를 먼저 확정한 뒤, 실제 이미지는 overlay로 scaledToFill 채운다.
         ZStack(alignment: .topTrailing) {
-            if let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .aspectRatio(1, contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            }
+            Color.clear
+                .aspectRatio(1, contentMode: .fit)
+                .overlay {
+                    if let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
             Button {
                 photos.remove(at: index)
             } label: {
@@ -310,8 +347,6 @@ struct ScanView: View {
             .padding(5)
             .accessibilityLabel("\(index + 1)번 사진 지우기")
         }
-        .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(alignment: .bottomLeading) {
             Image(systemName: "line.3.horizontal")
                 .font(.caption2.weight(.bold))
@@ -327,17 +362,20 @@ struct ScanView: View {
         Button {
             isCameraPresented = true
         } label: {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(DenimTheme.offWhite)
+            Color.clear
                 .aspectRatio(1, contentMode: .fit)
                 .overlay {
-                    VStack(spacing: 5) {
-                        Image(systemName: "plus")
-                            .font(.title3.weight(.medium))
-                        Text("사진 추가")
-                            .font(.caption2.weight(.semibold))
-                    }
-                    .foregroundStyle(DenimTheme.indigo)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(DenimTheme.offWhite)
+                        .overlay {
+                            VStack(spacing: 5) {
+                                Image(systemName: "plus")
+                                    .font(.title3.weight(.medium))
+                                Text("사진 추가")
+                                    .font(.caption2.weight(.semibold))
+                            }
+                            .foregroundStyle(DenimTheme.indigo)
+                        }
                 }
         }
         .accessibilityLabel("사진 추가")

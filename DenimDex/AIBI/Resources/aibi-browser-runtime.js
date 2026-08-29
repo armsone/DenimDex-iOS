@@ -533,6 +533,43 @@
   };
 
   /**
+   * 3b. Prompt Injection Verification
+   * Re-queries the prompt input independently of injectPrompt's own success flag so a caller
+   * can detect providers (e.g. ChatGPT's lateDomReplacement quirk) that replace the composer
+   * DOM node right after injection and silently drop the typed text.
+   */
+  RUNTIME.verifyPromptInjected = function (config, promptText) {
+    try {
+      const inputEl = queryFirst(config.selectors.promptInput);
+      if (!inputEl) {
+        return JSON.stringify({
+          success: false,
+          code: 'INPUT_NOT_FOUND',
+          error: 'Target prompt input element was not found.',
+        });
+      }
+      const isContentEditable =
+        inputEl.isContentEditable || inputEl.getAttribute('contenteditable') === 'true';
+      const currentText = isContentEditable ? (inputEl.innerText || '').trim() : (inputEl.value || '').trim();
+      const expected = String(promptText || '').trim();
+      const matches = expected.length > 0 && currentText === expected;
+
+      return JSON.stringify({
+        success: true,
+        data: {
+          matches: matches,
+          currentLength: currentText.length,
+        },
+      });
+    } catch (err) {
+      return JSON.stringify({
+        success: false,
+        error: String(err && err.message ? err.message : err),
+      });
+    }
+  };
+
+  /**
    * 4. Submission Escalation
    * Escalates across multiple interaction modalities:
    * Attempt 1: Button click

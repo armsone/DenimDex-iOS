@@ -240,16 +240,71 @@ final class AIBISession: NSObject, ObservableObject {
             }
         }
 
+        // ChatGPT는 첨부 직후나 초기 hydration 중에 작성기 DOM 노드를 자주 교체한다
+        // (aibi-providers.json chatgpt.quirks.lateDomReplacement). 첫 번째 일시적 실패나
+        // 검증 불일치에서 바로 실패로 단정하지 않고, 유한한 횟수만큼 다시 찾아 재시도한다.
         let escapedPrompt = escapeJsString(task.promptText)
         let injectScript = "window.__AIBI_RUNTIME__.injectPrompt(\(configJson(config)), '\(escapedPrompt)', \(task.forceFill))"
-        guard let injectResult = try? await evaluateScript(injectScript, on: webView) else {
-            failWithError("ChatGPT 입력 화면을 제어하지 못했습니다. 다시 시도해주세요."); return
+        let verifyScript = "window.__AIBI_RUNTIME__.verifyPromptInjected(\(configJson(config)), '\(escapedPrompt)')"
+
+        var attempt = 0
+        while attempt < timingProfile.promptInjectionRetryLimit {
+            attempt += 1
+            guard generationId == generation else { return }
+
+            guard let injectResult = try? await evaluateScript(injectScript, on: webView) else {
+                try? await Task.sleep(nanoseconds: UInt64(timingProfile.promptInjectionRetryDelay * 1_000_000_000))
+                continue
+            }
+            guard generationId == generation else { return }
+
+            let injectJson = parseJson(injectResult)
+            let injectSucceeded = injectJson?["success"] as? Bool ?? false
+            let injectCode = injectJson?["code"] as? String
+
+            var verifiedMatch = false
+            if injectSucceeded {
+                // JS 예외가 없다고 해서 프롬프트가 실제로 남아 있다는 뜻은 아니다.
+                // injectPrompt와 이 검증 호출 사이에 작성기 노드가 교체될 수 있으므로 다시 읽어 확인한다.
+                if let verifyResult = try? await evaluateScript(verifyScript, on: webView),
+                   let verifyJson = parseJson(verifyResult),
+                   let verifyData = verifyJson["data"] as? [String: Any] {
+                    verifiedMatch = verifyData["matches"] as? Bool ?? false
+                }
+            }
+
+            switch Self.classifyInjectionAttempt(injectSucceeded: injectSucceeded, injectCode: injectCode, verifiedMatch: verifiedMatch) {
+            case .injected:
+                startSubmissionLoop(generation: generation)
+                return
+            case .terminal:
+                // 사용자가 입력창에 이미 다른 내용을 남겨둔 경우: force 없이는 절대 덮어쓰지 않고,
+                // 재시도도 하지 않는다.
+                failWithError("ChatGPT 입력창에 이미 다른 내용이 있어 자동 입력을 건너뛰었습니다. 직접 확인해주세요.")
+                return
+            case .retryable:
+                try? await Task.sleep(nanoseconds: UInt64(timingProfile.promptInjectionRetryDelay * 1_000_000_000))
+            }
         }
+
         guard generationId == generation else { return }
-        guard let json = parseJson(injectResult), json["success"] as? Bool == true else {
-            failWithError("ChatGPT 입력 화면을 제어하지 못했습니다. 다시 시도해주세요."); return
+        failWithError("ChatGPT 입력 화면을 제어하지 못했습니다. 다시 시도해주세요.")
+    }
+
+    /// 순수 분류 함수: injectPrompt/verifyPromptInjected 결과만으로 다음 행동을 결정한다.
+    /// WebView 없이 단위 테스트가 가능하도록 부수효과 없이 분리했다.
+    nonisolated static func classifyInjectionAttempt(
+        injectSucceeded: Bool,
+        injectCode: String?,
+        verifiedMatch: Bool
+    ) -> AIBIPromptInjectionOutcome {
+        if injectCode == "EXISTING_TEXT_PRESERVED" {
+            return .terminal
         }
-        startSubmissionLoop(generation: generation)
+        if injectSucceeded && verifiedMatch {
+            return .injected
+        }
+        return .retryable
     }
 
     private func attachImagesAtomically(_ attachments: [AIBIMediaAttachment], config: AIBIProviderConfig, webView: WKWebView, generation: UInt64) async -> Bool {

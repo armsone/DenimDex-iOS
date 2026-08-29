@@ -48,6 +48,7 @@
 		BF_TestPhotoRoles /* QuickValuePhotoRolesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestPhotoRoles /* QuickValuePhotoRolesTests.swift */; };
 		BF_TestMarketValue /* MarketValueCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestMarketValue /* MarketValueCalculatorTests.swift */; };
 		BF_TestImagePolicy /* QuickValueImagePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestImagePolicy /* QuickValueImagePolicyTests.swift */; };
+		BF_TestPromptInjectionRetry /* AIBIPromptInjectionRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestPromptInjectionRetry /* AIBIPromptInjectionRetryTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,6 +102,7 @@
 		FR_TestPhotoRoles /* QuickValuePhotoRolesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValuePhotoRolesTests.swift; sourceTree = "<group>"; };
 		FR_TestMarketValue /* MarketValueCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketValueCalculatorTests.swift; sourceTree = "<group>"; };
 		FR_TestImagePolicy /* QuickValueImagePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueImagePolicyTests.swift; sourceTree = "<group>"; };
+		FR_TestPromptInjectionRetry /* AIBIPromptInjectionRetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIPromptInjectionRetryTests.swift; sourceTree = "<group>"; };
 		FR_AppProduct /* DenimDex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DenimDex.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FR_TestsProduct /* DenimDexTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DenimDexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -271,6 +273,7 @@
 				FR_TestPhotoRoles,
 				FR_TestMarketValue,
 				FR_TestImagePolicy,
+				FR_TestPromptInjectionRetry,
 			);
 			path = DenimDexTests;
 			sourceTree = "<group>";
@@ -428,6 +431,7 @@
 				BF_TestPhotoRoles,
 				BF_TestMarketValue,
 				BF_TestImagePolicy,
+				BF_TestPromptInjectionRetry,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -465,7 +469,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T7B4EPLHPK;
-				CURRENT_PROJECT_VERSION = 202608291019;
+				CURRENT_PROJECT_VERSION = 202608291110;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -475,7 +479,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -493,7 +497,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T7B4EPLHPK;
-				CURRENT_PROJECT_VERSION = 202608291019;
+				CURRENT_PROJECT_VERSION = 202608291110;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -503,7 +507,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -518,9 +522,9 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202608291019;
+				CURRENT_PROJECT_VERSION = 202608291110;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDexTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -535,9 +539,9 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202608291019;
+				CURRENT_PROJECT_VERSION = 202608291110;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDexTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

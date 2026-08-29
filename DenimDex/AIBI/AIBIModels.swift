@@ -33,6 +33,14 @@ enum AIBIFallbackReason: String, Codable, Equatable {
     case userInterventionRequested = "USER_INTERVENTION_REQUESTED"
 }
 
+/// Result of classifying one prompt-injection attempt against the runtime's
+/// `injectPrompt`/`verifyPromptInjected` responses.
+enum AIBIPromptInjectionOutcome: Equatable {
+    case injected
+    case retryable
+    case terminal
+}
+
 enum AIBIPresentationPreference: String, Codable, Equatable {
     case alwaysVisible = "ALWAYS_VISIBLE"
     case visibleWhenNeeded = "VISIBLE_WHEN_NEEDED"
@@ -127,6 +135,11 @@ struct AIBITimingProfile {
     var maxReadinessMisses: Int = 12
     var attachmentTimeout: TimeInterval = 30.0
     var attachmentCadence: TimeInterval = 0.35
+    /// Some providers (e.g. ChatGPT) replace the composer DOM node right after attachment
+    /// insertion or hydration. Bound the relocate/retry loop instead of failing on the first
+    /// transient miss or on a verified-mismatched injection.
+    var promptInjectionRetryLimit: Int = 4
+    var promptInjectionRetryDelay: TimeInterval = 0.6
     var submitTimeout: TimeInterval = 15.0
     var submitCadence: TimeInterval = 0.5
     var submitVerificationDelay: TimeInterval = 0.7

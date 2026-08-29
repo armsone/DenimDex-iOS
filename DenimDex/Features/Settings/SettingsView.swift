@@ -80,7 +80,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    LabeledContent("버전", value: "0.1.0")
+                    LabeledContent("현재 버전", value: appVersionDisplay)
                 }
             }
             .scrollContentBackground(.hidden)
@@ -99,6 +99,13 @@ struct SettingsView: View {
                 Button("확인", role: .cancel) {}
             }
         }
+    }
+
+    private var appVersionDisplay: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "-"
+        let build = info?["CFBundleVersion"] as? String ?? "-"
+        return "\(version) (\(build))"
     }
 
     private func clearSessionData() {
