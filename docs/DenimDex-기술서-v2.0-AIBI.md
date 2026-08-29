@@ -1,8 +1,13 @@
 # DenimDex 기술서 v2.0 — AIBI Edition
 
-문서 상태: 구현 기준 초안 — 자료 0건 출발 기준  
-대상: DenimDex iPhone 앱  
-핵심 엔진: AIBI(AI Browser Interface)  
+> [!WARNING]
+> **문서 상태 안내 (Superseded Notice)**
+> 본 기술서(v2.0)는 개발 초기의 아키텍처 초안입니다. 현재 iOS 소스를 감사해 작성한 Android 이식 기준은 [DenimDex Android 인수인계 기술서 v3.0](DenimDex-Android-인수인계-v3.0.md)을 우선 참조합니다.
+> 주요 변경 사항(Quick Value V2 이원 시장 모델(KRW/JPY), 자유 촬영 30장 수집/20장 전송 체계, 90초 호스트 타임아웃, SwiftData 스키마 등)은 최신 v3.0 인수인계 문서를 기준(Canonical Reference)으로 참조하십시오.
+
+문서 상태: 구현 전 설계 초안 (현재 구현 기준은 v3.0 참조) — 자료 0건 출발 기준
+대상: DenimDex iPhone 앱
+핵심 엔진: AIBI(AI Browser Interface)
 작성일: 2026-08-28
 
 ## 1. 제품 정의
