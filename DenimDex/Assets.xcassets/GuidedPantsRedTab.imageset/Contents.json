@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "guided-pants-red-tab.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

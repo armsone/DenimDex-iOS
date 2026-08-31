@@ -430,14 +430,34 @@ struct ScanView: View {
                     .scaledToFill()
                     .frame(width: 58, height: 58)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            } else if slot.isSkipped {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(DenimTheme.warningAmber.opacity(0.12))
+                        .frame(width: 58, height: 58)
+                    Image(systemName: "forward.fill")
+                        .font(.headline)
+                        .foregroundStyle(DenimTheme.warningAmber)
+                }
+            } else if let sampleImageName = slot.definition.referenceImageName {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(DenimTheme.offWhite)
+                        .frame(width: 58, height: 58)
+                    Image(sampleImageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 58, height: 58)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(slot.isSkipped ? DenimTheme.warningAmber.opacity(0.12) : DenimTheme.offWhite)
+                        .fill(DenimTheme.offWhite)
                         .frame(width: 58, height: 58)
-                    Image(systemName: slot.isSkipped ? "forward.fill" : slot.definition.iconName)
+                    Image(systemName: slot.definition.iconName)
                         .font(.headline)
-                        .foregroundStyle(slot.isSkipped ? DenimTheme.warningAmber : DenimTheme.inkSoft)
+                        .foregroundStyle(DenimTheme.inkSoft)
                 }
             }
 

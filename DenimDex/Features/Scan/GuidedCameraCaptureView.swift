@@ -36,6 +36,7 @@ struct GuidedCameraCaptureView: UIViewControllerRepresentable {
         private weak var stepBadgeLabel: UILabel?
         private weak var titleLabel: UILabel?
         private weak var instructionLabel: UILabel?
+        private weak var guideImageView: UIImageView?
         private weak var doneButton: UIButton?
         private weak var previousButton: UIButton?
         private weak var skipButton: UIButton?
@@ -99,17 +100,29 @@ struct GuidedCameraCaptureView: UIViewControllerRepresentable {
             instruction.translatesAutoresizingMaskIntoConstraints = false
             instructionLabel = instruction
 
+            let guideImage = UIImageView()
+            guideImage.contentMode = .scaleAspectFit
+            guideImage.clipsToBounds = true
+            guideImage.layer.cornerRadius = 10
+            guideImage.translatesAutoresizingMaskIntoConstraints = false
+            guideImageView = guideImage
+
             hudCard.addSubview(title)
             hudCard.addSubview(instruction)
+            hudCard.addSubview(guideImage)
 
             NSLayoutConstraint.activate([
                 title.topAnchor.constraint(equalTo: hudCard.topAnchor, constant: 10),
                 title.leadingAnchor.constraint(equalTo: hudCard.leadingAnchor, constant: 14),
-                title.trailingAnchor.constraint(equalTo: hudCard.trailingAnchor, constant: -14),
+                title.trailingAnchor.constraint(equalTo: guideImage.leadingAnchor, constant: -10),
                 instruction.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 4),
                 instruction.leadingAnchor.constraint(equalTo: hudCard.leadingAnchor, constant: 14),
-                instruction.trailingAnchor.constraint(equalTo: hudCard.trailingAnchor, constant: -14),
-                instruction.bottomAnchor.constraint(equalTo: hudCard.bottomAnchor, constant: -10)
+                instruction.trailingAnchor.constraint(equalTo: guideImage.leadingAnchor, constant: -10),
+                instruction.bottomAnchor.constraint(equalTo: hudCard.bottomAnchor, constant: -10),
+                guideImage.trailingAnchor.constraint(equalTo: hudCard.trailingAnchor, constant: -14),
+                guideImage.centerYAnchor.constraint(equalTo: hudCard.centerYAnchor),
+                guideImage.widthAnchor.constraint(equalToConstant: 54),
+                guideImage.heightAnchor.constraint(equalToConstant: 54)
             ])
 
             // 셔터 버튼
@@ -216,6 +229,17 @@ struct GuidedCameraCaptureView: UIViewControllerRepresentable {
             stepBadgeLabel?.text = " \(currentSlotIndex + 1) / \(total) "
             titleLabel?.text = "\(currentSlotIndex + 1). \(slot.definition.title)"
             instructionLabel?.text = slot.definition.shortInstruction
+            updateGuideImage(for: slot)
+        }
+
+        private func updateGuideImage(for slot: GuidedShotSlot) {
+            guard let guideImageView else { return }
+            if let imageName = slot.definition.referenceImageName, let image = UIImage(named: imageName) {
+                guideImageView.image = image
+                guideImageView.isHidden = false
+            } else {
+                guideImageView.isHidden = true
+            }
         }
 
         private func updateControls() {

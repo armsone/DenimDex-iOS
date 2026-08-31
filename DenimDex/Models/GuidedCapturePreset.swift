@@ -193,6 +193,30 @@ struct GuidedShotDefinition: Identifiable, Equatable, Sendable {
     let detailHint: String
     let iconName: String
 
+    var referenceImageName: String? {
+        switch role {
+        case "pants_front": return "GuidedPantsFront"
+        case "pants_inside_hem_selvedge": return "GuidedPantsHem"
+        case "pants_back": return "GuidedPantsBack"
+        case "pants_patch": return "GuidedPantsPatch"
+        case "pants_red_tab": return "GuidedPantsRedTab"
+        case "pants_waist_button_back": return "GuidedPantsButtonBack"
+        case "pants_care_tag": return "GuidedPantsCareTag"
+        case "pants_inside_back_pocket": return "GuidedPantsPocketInside"
+        case "pants_fly": return "GuidedPantsFly"
+        case "jacket_front": return "GuidedJacketFront"
+        case "jacket_interior": return "GuidedJacketInterior"
+        case "jacket_back": return "GuidedJacketBack"
+        case "jacket_neck_label_patch": return "GuidedJacketNeckPatch"
+        case "jacket_red_tab": return "GuidedJacketRedTab"
+        case "jacket_chest_pocket": return "GuidedJacketChestPocket"
+        case "jacket_button_back": return "GuidedJacketButtonBack"
+        case "jacket_waist_adjuster": return "GuidedJacketWaistAdjuster"
+        case "jacket_care_tag": return "GuidedJacketCareTag"
+        default: return nil
+        }
+    }
+
     var id: String { role }
 }
 
@@ -223,8 +247,8 @@ enum CaptureModeSelection: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .pants: "팬츠 정밀"
-        case .jacket: "재킷 정밀"
+        case .pants: "팬츠"
+        case .jacket: "재킷"
         case .quick: "자유 촬영"
         }
     }

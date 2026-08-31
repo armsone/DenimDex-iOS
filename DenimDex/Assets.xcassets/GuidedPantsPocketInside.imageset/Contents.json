@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "guided-pants-pocket-inside.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
