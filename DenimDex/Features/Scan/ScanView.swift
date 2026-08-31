@@ -49,6 +49,9 @@ struct ScanView: View {
     @State private var shouldAnalyzeAfterLogin = false
     @State private var showClearAllConfirmation = false
 
+    // 생성형 가이드 참고 이미지 확대 미리보기
+    @State private var previewReferenceImageName: String?
+
     private var isGuidedMode: Bool { selectedMode == .pants || selectedMode == .jacket }
 
     private var activeGuidedSlots: [GuidedShotSlot] {
@@ -260,7 +263,29 @@ struct ScanView: View {
                 Text("현재 감정을 위해 담은 사진만 비워집니다. 사진 앱과 아카이브의 원본은 그대로 유지됩니다.")
             }
             .onAppear { loginStore.refresh() }
+            .overlay {
+                if let imageName = previewReferenceImageName {
+                    referencePreviewOverlay(imageName: imageName)
+                }
+            }
         }
+    }
+
+    // 생성형 참고 이미지를 화면 위에 크게 띄우는 반투명 오버레이. 아무 곳이나 탭하면 닫힌다.
+    private func referencePreviewOverlay(imageName: String) -> some View {
+        ZStack {
+            Color.black.opacity(0.75)
+                .ignoresSafeArea()
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .padding(24)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { previewReferenceImageName = nil }
+        .accessibilityLabel("참고 이미지 확대 보기")
+        .accessibilityHint("탭하면 닫힙니다")
+        .accessibilityAddTraits(.isButton)
     }
 
     private func scrollTo(
@@ -440,16 +465,22 @@ struct ScanView: View {
                         .foregroundStyle(DenimTheme.warningAmber)
                 }
             } else if let sampleImageName = slot.definition.referenceImageName {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(DenimTheme.offWhite)
-                        .frame(width: 58, height: 58)
-                    Image(sampleImageName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 58, height: 58)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                Button {
+                    previewReferenceImageName = slot.definition.previewImageName ?? sampleImageName
+                } label: {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(DenimTheme.offWhite)
+                            .frame(width: 58, height: 58)
+                        Image(sampleImageName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 58, height: 58)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("참고 이미지 크게 보기")
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)

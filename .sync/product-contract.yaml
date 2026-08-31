@@ -5,14 +5,14 @@ members:
   ios:
     path: /Users/armsone/git/DenimDex-iOS
     bundle_id: com.armsone.DenimDex
-    version_name: 0.2.0
-    display_build: 202608291019
+    version_name: 0.3.1
+    display_build: 202608312019
   android:
     path: /Users/armsone/git/DenimDex-Android
     application_id: com.armsone.denimdex
-    version_name: 0.2.0
-    version_code: 346052
-    display_build: 202608291019
+    version_name: 0.3.1
+    version_code: 349699
+    display_build: 202608312019
     min_sdk: 26
     target_sdk: 37
 capabilities:
@@ -40,6 +40,18 @@ capabilities:
     contract: Declare completion after three matching stable reads, deliver one host result, support cancellation, and enforce the 90-second DenimDex host countdown.
     ios: implemented
     android: implemented_source_only
+  - id: DD-AIBI-005
+    contract: Preserve any existing ChatGPT composer text, inject the DenimDex prompt only into an empty composer, and verify the exact injected value with at most four attempts separated by 600 milliseconds before returning a recoverable error.
+    ios: implemented
+    android: unit_tested_source
+  - id: DD-SCAN-002
+    contract: Keep collected-photo tiles square, scroll the newly extended collector to the valuation action after photo additions, and scroll to the progress panel when analysis starts.
+    ios: implemented
+    android: runtime_verified_phone
+  - id: DD-GUIDED-001
+    contract: Offer 팬츠, 재킷, and 자유 촬영 modes; preserve nine ordered evidence roles for each guided garment; show a matching small real reference image in every row and the guide; open a clearer preview on tap and dismiss it on tap; keep the guided camera shutter centered with 건너뛰기 separated on the right; submit captured roles and missing roles together for multi-detail consistency analysis.
+    ios: built_installed_and_user_accepted
+    android: built_installed_source_synced
   - id: DD-RESULT-001
     contract: Parse QuickValue schemaVersion 3 and task quick_value with strict then flexible numeric normalization, product variant, estimated production year and factory, conservative rarity, fair-purchase ranges, and an observed-photo hallucination guard.
     ios: unit_tested
@@ -92,6 +104,14 @@ design:
       dimensions: 1206x2622
       sha256: 9f6b409ebe6799313b4177f0b11a98c1eebbbedde621e921f8b02341c4e3a7c0
 verification:
+  release_version: 0.3.1
+  release_display_build: 202608312019
+  android_version_code: 349699
+  ios_release_archive: passed
+  ios_physical_install_launch: passed_bk_iphone17pro
+  android_release_apk: passed_custom_release_signature
+  android_debug_install_launch: passed_sm_t500_and_sm_f956n_data_preserved
+  guided_reference_assets: 18_thumbnails_and_18_previews_each_platform
   android_source: complete
   android_unit_tests: passed
   android_assemble_debug: passed
@@ -101,17 +121,20 @@ verification:
   android_runtime_catalog: 12_final_states_including_result_detail
   android_behavior_smoke: archive_navigation_and_photo_picker_cancel_passed
   ios_simulator_runtime: passed_iphone_17_pro_default_scan
-  live_chatgpt_aibi: signed_out_login_surface_only
+  live_chatgpt_aibi: authenticated_single_photo_result_passed
+  live_chatgpt_prompt_safety: existing_composer_text_preserved_with_recoverable_error
+  android_photo_decode_failure: recoverable_error_no_process_crash
   quick_value_v3_ios_tests: passed_52_tests
   quick_value_v3_android_unit_tests: passed
   quick_value_v3_android_assemble_debug: passed
-  rendered_visual_parity: partial_default_scan_pair_only_v3_result_not_recaptured
+  rendered_visual_parity: partial_android_v3_result_and_collector_runtime_evidence_without_current_ios_pairs
   parity_ledger: /Users/armsone/git/DenimDex-Android/.parity/ledger.json
 deferred_or_open:
   - Android Scan expanded-width master-detail is not yet implemented.
   - Android process-death restoration for selected photos and an active AIBI run is not implemented.
   - Tablet and Google TV runtime captures are absent; the phone path was exercised on SM-F968N.
-  - Live ChatGPT authentication, multi-image attachment, cancellation, timeout, and stable completion traces are absent.
+  - Live ChatGPT authenticated single-photo attachment and stable completion passed; multi-image completion, cancellation, timeout, and challenge traces remain absent.
   - Current paired iOS runtime captures are absent for archive, guide, settings, dialogs, results, tablet, and accessibility states.
   - Quick Value V3 product, rarity, fair-price, estimated-production-year, and estimated-factory result surfaces have source and automated-test coverage but no paired post-change runtime captures.
   - The two supplied iOS reference PNGs are byte-identical, so they do not prove two distinct route states.
+  - Guided capture is source-synchronized and installed on both platforms; a post-change paired runtime capture set is still absent, so strict rendered Matchup remains open.

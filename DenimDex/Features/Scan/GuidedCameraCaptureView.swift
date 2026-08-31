@@ -37,6 +37,7 @@ struct GuidedCameraCaptureView: UIViewControllerRepresentable {
         private weak var titleLabel: UILabel?
         private weak var instructionLabel: UILabel?
         private weak var guideImageView: UIImageView?
+        private weak var guidePreviewOverlayView: UIView?
         private weak var doneButton: UIButton?
         private weak var previousButton: UIButton?
         private weak var skipButton: UIButton?
@@ -105,6 +106,11 @@ struct GuidedCameraCaptureView: UIViewControllerRepresentable {
             guideImage.clipsToBounds = true
             guideImage.layer.cornerRadius = 10
             guideImage.translatesAutoresizingMaskIntoConstraints = false
+            guideImage.isUserInteractionEnabled = true
+            guideImage.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(guideImageTapped)))
+            guideImage.isAccessibilityElement = true
+            guideImage.accessibilityLabel = "참고 이미지 크게 보기"
+            guideImage.accessibilityTraits = .button
             guideImageView = guideImage
 
             hudCard.addSubview(title)
@@ -183,7 +189,8 @@ struct GuidedCameraCaptureView: UIViewControllerRepresentable {
                 prev.heightAnchor.constraint(equalTo: prev.widthAnchor),
 
                 skip.centerYAnchor.constraint(equalTo: shutter.centerYAnchor),
-                skip.leadingAnchor.constraint(equalTo: shutter.leadingAnchor, constant: 28),
+                skip.leadingAnchor.constraint(equalTo: shutter.trailingAnchor, constant: 20),
+                skip.trailingAnchor.constraint(lessThanOrEqualTo: overlay.safeAreaLayoutGuide.trailingAnchor, constant: -12),
                 skip.heightAnchor.constraint(equalToConstant: 44),
 
                 flip.bottomAnchor.constraint(equalTo: hudCard.bottomAnchor),
@@ -295,6 +302,42 @@ struct GuidedCameraCaptureView: UIViewControllerRepresentable {
                   UIImagePickerController.isFlashAvailable(for: picker.cameraDevice) else { return }
             picker.cameraFlashMode = picker.cameraFlashMode == .off ? .on : .off
             updateFlashButton()
+        }
+
+        @objc private func guideImageTapped() {
+            guard guidePreviewOverlayView == nil,
+                  let container = picker?.cameraOverlayView,
+                  workingSlots.indices.contains(currentSlotIndex),
+                  let previewName = workingSlots[currentSlotIndex].definition.previewImageName,
+                  let image = UIImage(named: previewName) else { return }
+
+            let overlay = UIView(frame: container.bounds)
+            overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            overlay.backgroundColor = UIColor.black.withAlphaComponent(0.75)
+            overlay.isAccessibilityElement = true
+            overlay.accessibilityLabel = "참고 이미지 확대 보기"
+            overlay.accessibilityHint = "탭하면 닫힙니다"
+            overlay.accessibilityTraits = .button
+            overlay.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissGuidePreview)))
+
+            let imageView = UIImageView(image: image)
+            imageView.contentMode = .scaleAspectFit
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            overlay.addSubview(imageView)
+            NSLayoutConstraint.activate([
+                imageView.topAnchor.constraint(equalTo: overlay.safeAreaLayoutGuide.topAnchor, constant: 24),
+                imageView.bottomAnchor.constraint(equalTo: overlay.safeAreaLayoutGuide.bottomAnchor, constant: -24),
+                imageView.leadingAnchor.constraint(equalTo: overlay.safeAreaLayoutGuide.leadingAnchor, constant: 24),
+                imageView.trailingAnchor.constraint(equalTo: overlay.safeAreaLayoutGuide.trailingAnchor, constant: -24)
+            ])
+
+            container.addSubview(overlay)
+            guidePreviewOverlayView = overlay
+        }
+
+        @objc private func dismissGuidePreview() {
+            guidePreviewOverlayView?.removeFromSuperview()
+            guidePreviewOverlayView = nil
         }
 
         private func updateFlashButton() {

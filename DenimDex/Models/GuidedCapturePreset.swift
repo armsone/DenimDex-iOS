@@ -217,6 +217,11 @@ struct GuidedShotDefinition: Identifiable, Equatable, Sendable {
         }
     }
 
+    /// 확대 보기에 쓰는 고해상도 참고 이미지 에셋 이름.
+    var previewImageName: String? {
+        referenceImageName.map { $0 + "Preview" }
+    }
+
     var id: String { role }
 }
 
