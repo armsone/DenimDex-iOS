@@ -66,6 +66,14 @@ final class CollectionItem {
     var japanFairPurchaseLow: Int?
     var japanFairPurchaseHigh: Int?
 
+    // Quick Value V3 — 정밀 가이드 프리셋, 진품·복각 가능성, 교차 검증 단서. 기존 저장 항목은 전부 nil이다.
+    var capturePresetRaw: String?
+    var authenticityPossibility: String?
+    var authenticitySummary: String?
+    var matches: [String]?
+    var conflicts: [String]?
+    var missingEvidence: [String]?
+
     /// 검증을 통과한 원본 Quick Value JSON. 근거 조사 등 후속 기능이 참조할 수 있도록 보관한다.
     var quickValueJSON: String
 
@@ -81,6 +89,7 @@ final class CollectionItem {
         photoRoleRawValues: [String],
         result: QuickValueResult,
         quickValueJSON: String,
+        capturePreset: String? = nil,
         userNotes: String = ""
     ) {
         self.id = id
@@ -116,6 +125,12 @@ final class CollectionItem {
         self.koreaFairPurchaseHigh = result.koreaFairPurchaseRange.high
         self.japanFairPurchaseLow = result.japanFairPurchaseRange.low
         self.japanFairPurchaseHigh = result.japanFairPurchaseRange.high
+        self.capturePresetRaw = capturePreset
+        self.authenticityPossibility = result.authenticityPossibility
+        self.authenticitySummary = result.authenticitySummary
+        self.matches = result.matches
+        self.conflicts = result.conflicts
+        self.missingEvidence = result.missingEvidence
         self.quickValueJSON = quickValueJSON
         self.userNotes = userNotes
         self.verificationStateRaw = VerificationState.aiEstimate.rawValue

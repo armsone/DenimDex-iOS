@@ -50,6 +50,8 @@ struct QuickValueResultCard: View {
             }
 
             conclusionSection
+            authenticitySection
+            crossCheckSection
             productInfoSection
             raritySection
             fairAmountSection
@@ -109,7 +111,116 @@ struct QuickValueResultCard: View {
         }
     }
 
-    // MARK: - 2. 제품 정보
+    // MARK: - 2. 진품·복각 가능성
+
+    @ViewBuilder
+    private var authenticitySection: some View {
+        let possibility = result.safeAuthenticityPossibility
+        let summary = result.safeAuthenticitySummary
+        if !possibility.isEmpty || !summary.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                DenimSectionTitle(title: "진품·복각 소견")
+                    .foregroundStyle(DenimTheme.charcoal)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    if !possibility.isEmpty {
+                        HStack {
+                            Label(possibility, systemImage: "shield.lefthalf.filled")
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(DenimTheme.indigo)
+                            Spacer()
+                        }
+                    }
+
+                    if !summary.isEmpty {
+                        Text(summary)
+                            .font(.subheadline)
+                            .foregroundStyle(DenimTheme.inkSoft)
+                    }
+
+                    Text("사진 단서에 기반한 참고용 AI 추정이며 법적 정품 감정서가 아닙니다.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(DenimTheme.fadedDenim.opacity(0.8))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+    }
+
+    // MARK: - 3. 디테일 교차 검증 (Cross-Check)
+
+    @ViewBuilder
+    private var crossCheckSection: some View {
+        let matches = result.safeMatches
+        let conflicts = result.safeConflicts
+        let missing = result.safeMissingEvidence
+
+        if !matches.isEmpty || !conflicts.isEmpty || !missing.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                DenimSectionTitle(title: "디테일 교차 검증")
+                    .foregroundStyle(DenimTheme.charcoal)
+
+                // 일치하는 단서
+                if !matches.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("일치하는 단서", systemImage: "checkmark.circle.fill")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(DenimTheme.successGreen)
+                        ForEach(matches, id: \.self) { match in
+                            Text("· \(match)")
+                                .font(.caption)
+                                .foregroundStyle(DenimTheme.charcoal)
+                        }
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(DenimTheme.successGreen.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+
+                // 상충·주의 단서
+                if !conflicts.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("상충·주의 단서", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(DenimTheme.warningAmber)
+                        ForEach(conflicts, id: \.self) { conflict in
+                            Text("· \(conflict)")
+                                .font(.caption)
+                                .foregroundStyle(DenimTheme.charcoal)
+                        }
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(DenimTheme.warningAmber.opacity(0.09))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+
+                // 누락된 증거
+                if !missing.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("추가 확인 필요 (누락된 단서)", systemImage: "questionmark.circle.fill")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(DenimTheme.indigoBright)
+                        ForEach(missing, id: \.self) { item in
+                            Text("· \(item)")
+                                .font(.caption)
+                                .foregroundStyle(DenimTheme.charcoal)
+                        }
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(DenimTheme.fadedDenim)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
+        }
+    }
+
+    // MARK: - 4. 제품 정보
 
     private var productInfoSection: some View {
         VStack(alignment: .leading, spacing: 10) {

@@ -13,6 +13,7 @@
 		BF_EvidencePhotoRole /* EvidencePhotoRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_EvidencePhotoRole /* EvidencePhotoRole.swift */; };
 		BF_QuickValueResult /* QuickValueResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValueResult /* QuickValueResult.swift */; };
 		BF_QuickValuePhotoRoles /* QuickValuePhotoRoles.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValuePhotoRoles /* QuickValuePhotoRoles.swift */; };
+		BF_GuidedCapturePreset /* GuidedCapturePreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GuidedCapturePreset /* GuidedCapturePreset.swift */; };
 		BF_CollectionItem /* CollectionItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CollectionItem /* CollectionItem.swift */; };
 		BF_AIBIModels /* AIBIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIModels /* AIBIModels.swift */; };
 		BF_AIBIMediaPipeline /* AIBIMediaPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIMediaPipeline /* AIBIMediaPipeline.swift */; };
@@ -29,6 +30,7 @@
 		BF_HanAIProduct /* HanAI in Frameworks */ = {isa = PBXBuildFile; productRef = PROD_HanAI /* HanAI */; };
 		BF_QuickValueRunner /* QuickValueRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValueRunner /* QuickValueRunner.swift */; };
 		BF_CameraCaptureView /* CameraCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CameraCaptureView /* CameraCaptureView.swift */; };
+		BF_GuidedCameraCaptureView /* GuidedCameraCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_GuidedCameraCaptureView /* GuidedCameraCaptureView.swift */; };
 		BF_ScanView /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_ScanView /* ScanView.swift */; };
 		BF_QuickValueResultCard /* QuickValueResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_QuickValueResultCard /* QuickValueResultCard.swift */; };
 		BF_MyDenimListView /* MyDenimListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_MyDenimListView /* MyDenimListView.swift */; };
@@ -68,6 +70,7 @@
 		FR_EvidencePhotoRole /* EvidencePhotoRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidencePhotoRole.swift; sourceTree = "<group>"; };
 		FR_QuickValueResult /* QuickValueResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueResult.swift; sourceTree = "<group>"; };
 		FR_QuickValuePhotoRoles /* QuickValuePhotoRoles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValuePhotoRoles.swift; sourceTree = "<group>"; };
+		FR_GuidedCapturePreset /* GuidedCapturePreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedCapturePreset.swift; sourceTree = "<group>"; };
 		FR_CollectionItem /* CollectionItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionItem.swift; sourceTree = "<group>"; };
 		FR_AIBIModels /* AIBIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIModels.swift; sourceTree = "<group>"; };
 		FR_AIBIMediaPipeline /* AIBIMediaPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIMediaPipeline.swift; sourceTree = "<group>"; };
@@ -83,6 +86,7 @@
 		FR_HanAIPhotoDeduplicator /* HanAIPhotoDeduplicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HanAIPhotoDeduplicator.swift; sourceTree = "<group>"; };
 		FR_QuickValueRunner /* QuickValueRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueRunner.swift; sourceTree = "<group>"; };
 		FR_CameraCaptureView /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureView.swift; sourceTree = "<group>"; };
+		FR_GuidedCameraCaptureView /* GuidedCameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedCameraCaptureView.swift; sourceTree = "<group>"; };
 		FR_ScanView /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
 		FR_QuickValueResultCard /* QuickValueResultCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickValueResultCard.swift; sourceTree = "<group>"; };
 		FR_MyDenimListView /* MyDenimListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDenimListView.swift; sourceTree = "<group>"; };
@@ -165,6 +169,7 @@
 				FR_EvidencePhotoRole,
 				FR_QuickValueResult,
 				FR_QuickValuePhotoRoles,
+				FR_GuidedCapturePreset,
 				FR_CollectionItem,
 			);
 			path = Models;
@@ -223,6 +228,7 @@
 			children = (
 				FR_QuickValueRunner,
 				FR_CameraCaptureView,
+				FR_GuidedCameraCaptureView,
 				FR_ScanView,
 				FR_QuickValueResultCard,
 			);
@@ -394,6 +400,7 @@
 				BF_EvidencePhotoRole,
 				BF_QuickValueResult,
 				BF_QuickValuePhotoRoles,
+				BF_GuidedCapturePreset,
 				BF_CollectionItem,
 				BF_AIBIModels,
 				BF_AIBIMediaPipeline,
@@ -409,6 +416,7 @@
 				BF_HanAIPhotoDeduplicator,
 				BF_QuickValueRunner,
 				BF_CameraCaptureView,
+				BF_GuidedCameraCaptureView,
 				BF_ScanView,
 				BF_QuickValueResultCard,
 				BF_MyDenimListView,
@@ -469,7 +477,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T7B4EPLHPK;
-				CURRENT_PROJECT_VERSION = 202608311731;
+				CURRENT_PROJECT_VERSION = 202608311818;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -479,7 +487,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 0.2.2;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -497,7 +505,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T7B4EPLHPK;
-				CURRENT_PROJECT_VERSION = 202608311731;
+				CURRENT_PROJECT_VERSION = 202608311818;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -507,7 +515,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 0.2.2;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -522,9 +530,9 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202608311731;
+				CURRENT_PROJECT_VERSION = 202608311818;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.2.2;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDexTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -539,9 +547,9 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202608311731;
+				CURRENT_PROJECT_VERSION = 202608311818;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.2.2;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDexTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

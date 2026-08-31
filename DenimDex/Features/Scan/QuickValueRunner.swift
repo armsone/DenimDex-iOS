@@ -40,7 +40,12 @@ final class QuickValueRunner: ObservableObject, AIBIResultSink {
             .store(in: &cancellables)
     }
 
-    func start(photos: [Data], hiddenContainer: UIView?) {
+    func start(
+        photos: [Data],
+        roles: [String]? = nil,
+        missingRoles: [String] = [],
+        hiddenContainer: UIView?
+    ) {
         guard let config = AIBIProviderRegistry.chatGPT else {
             state = .failed("ChatGPT 설정을 불러오지 못했습니다.")
             return
@@ -53,6 +58,7 @@ final class QuickValueRunner: ObservableObject, AIBIResultSink {
         let requestID = UUID()
         runID = requestID
         let sourceImages = photos
+        let sourceRoles = roles ?? QuickValuePhotoRoles.identifiers(count: sourceImages.count)
         photoRoles = []
         sentPhotoCount = 0
         removedSimilarPhotoCount = 0
@@ -68,13 +74,15 @@ final class QuickValueRunner: ObservableObject, AIBIResultSink {
             let prepared = await Task.detached(priority: .userInitiated) {
                 let selection = HanAIPhotoDeduplicator.selectRepresentatives(from: sourceImages)
                 let transferImages = Array(selection.images.prefix(QuickValuePhotoRoles.maxCount))
-                let roles = QuickValuePhotoRoles.identifiers(count: transferImages.count)
+                let transferRoles = Array(selection.keptIndices.map { index in
+                    sourceRoles.indices.contains(index) ? sourceRoles[index] : "photo_\(index + 1)"
+                }.prefix(QuickValuePhotoRoles.maxCount))
                 let attachments = try? AIBIImageNormalizer.normalizeOrdered(
                     transferImages,
-                    roles: roles.map(Optional.some),
+                    roles: transferRoles.map(Optional.some),
                     policy: QuickValueImagePolicy.normalizationPolicy(photoCount: transferImages.count)
                 )
-                return (selection, transferImages.count, roles, attachments)
+                return (selection, transferImages.count, transferRoles, attachments)
             }.value
             guard !Task.isCancelled, let self, self.runID == requestID else { return }
             self.preparationTask = nil
@@ -86,7 +94,10 @@ final class QuickValueRunner: ObservableObject, AIBIResultSink {
             self.sentPhotoCount = attachments.count
             self.removedSimilarPhotoCount = prepared.0.removedCount
             self.omittedForTransferLimitCount = max(0, prepared.0.images.count - prepared.1)
-            let prompt = QuickValuePromptBuilder.buildPrompt(photoRoles: photoRoles)
+            let prompt = QuickValuePromptBuilder.buildPrompt(
+                photoRoles: photoRoles,
+                missingPhotoRoles: missingRoles
+            )
             let task = AIBITask(
                 providerId: config.id,
                 promptText: prompt,

@@ -54,7 +54,10 @@ enum QuickValueResultValidator {
         guard result.japanFairPurchaseRange.low <= result.japanFairPurchaseRange.high else { return .failure(.lowGreaterThanHigh) }
         guard result.jpyToKrwRate > 0 else { return .failure(.invalidExchangeRate) }
 
-        let allowedRoles = Set(sentPhotoRoles)
+        var allowedRoles = Set(sentPhotoRoles)
+        for i in 1...max(1, sentPhotoRoles.count) {
+            allowedRoles.insert("photo_\(i)")
+        }
         for observation in result.observations where observation.certainty == ObservationCertainty.observed.rawValue {
             guard allowedRoles.contains(observation.evidencePhotoRole) else {
                 return .failure(.unobservedPhotoRoleUsed)
@@ -119,7 +122,12 @@ enum QuickValueResultValidator {
             observations: observations,
             valueReasons: strings(root["valueReasons"]),
             nextPhotoInstruction: string(root["nextPhotoInstruction"]),
-            caveats: strings(root["caveats"])
+            caveats: strings(root["caveats"]),
+            authenticityPossibility: string(root["authenticityPossibility"]),
+            authenticitySummary: string(root["authenticitySummary"]),
+            matches: strings(root["matches"]),
+            conflicts: strings(root["conflicts"]),
+            missingEvidence: strings(root["missingEvidence"])
         )
     }
 

@@ -57,6 +57,24 @@ struct QuickValueResult: Codable, Equatable {
     var valueReasons: [String]
     var nextPhotoInstruction: String?
     var caveats: [String]
+
+    // Quick Value V3 정밀 교차 검증 & 진품·복각 가능성 필드 (기존 데이터는 nil로 안전하게 디코딩됨)
+    /// 진품·복각 가능성 소견 (예: "진품 가능성 높음", "복각판(LVC) 추정", "판단 보류")
+    var authenticityPossibility: String?
+    /// 진품·복각 판단 근거에 대한 두 문장 이내 요약
+    var authenticitySummary: String?
+    /// 여러 디테일 간 연대와 특징이 상호 일치하는 근거 목록
+    var matches: [String]?
+    /// 상충되거나 주의가 필요한 불일치 단서 목록
+    var conflicts: [String]?
+    /// 확실한 판단을 위해 누락된 증거 및 추가 확인 필요 부위 목록
+    var missingEvidence: [String]?
+
+    var safeMatches: [String] { matches ?? [] }
+    var safeConflicts: [String] { conflicts ?? [] }
+    var safeMissingEvidence: [String] { missingEvidence ?? [] }
+    var safeAuthenticityPossibility: String { authenticityPossibility ?? "" }
+    var safeAuthenticitySummary: String { authenticitySummary ?? "" }
 }
 
 enum QuickValueConfidence: String, CaseIterable {

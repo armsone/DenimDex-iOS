@@ -71,6 +71,91 @@ struct CollectionItemDetailView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .denimCard()
 
+                if let possibility = item.authenticityPossibility, !possibility.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("진품·복각 소견")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Label(possibility, systemImage: "shield.lefthalf.filled")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(DenimTheme.indigo)
+                        }
+                        if let summary = item.authenticitySummary, !summary.isEmpty {
+                            Text(summary)
+                                .font(.subheadline)
+                                .foregroundStyle(DenimTheme.inkSoft)
+                        }
+                        Text("사진 단서에 기반한 참고용 AI 추정이며 법적 정품 감정서가 아닙니다.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .denimCard()
+                }
+
+                if (item.matches?.isEmpty == false) || (item.conflicts?.isEmpty == false) || (item.missingEvidence?.isEmpty == false) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("디테일 교차 검증")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+
+                        if let matches = item.matches, !matches.isEmpty {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Label("일치하는 단서", systemImage: "checkmark.circle.fill")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(DenimTheme.successGreen)
+                                ForEach(matches, id: \.self) { match in
+                                    Text("· \(match)")
+                                        .font(.caption)
+                                        .foregroundStyle(DenimTheme.charcoal)
+                                }
+                            }
+                            .padding(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(DenimTheme.successGreen.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+
+                        if let conflicts = item.conflicts, !conflicts.isEmpty {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Label("상충·주의 단서", systemImage: "exclamationmark.triangle.fill")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(DenimTheme.warningAmber)
+                                ForEach(conflicts, id: \.self) { conflict in
+                                    Text("· \(conflict)")
+                                        .font(.caption)
+                                        .foregroundStyle(DenimTheme.charcoal)
+                                }
+                            }
+                            .padding(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(DenimTheme.warningAmber.opacity(0.09))
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+
+                        if let missing = item.missingEvidence, !missing.isEmpty {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Label("추가 확인 필요 (누락된 단서)", systemImage: "questionmark.circle.fill")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(DenimTheme.indigoBright)
+                                ForEach(missing, id: \.self) { m in
+                                    Text("· \(m)")
+                                        .font(.caption)
+                                        .foregroundStyle(DenimTheme.charcoal)
+                                }
+                            }
+                            .padding(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(DenimTheme.fadedDenim)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .denimCard()
+                }
+
                 if item.rarityLevel != .unknown || !(item.raritySummary ?? "").isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
