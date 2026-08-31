@@ -244,7 +244,12 @@ final class AIBISession: NSObject, ObservableObject {
         // (aibi-providers.json chatgpt.quirks.lateDomReplacement). 첫 번째 일시적 실패나
         // 검증 불일치에서 바로 실패로 단정하지 않고, 유한한 횟수만큼 다시 찾아 재시도한다.
         let escapedPrompt = escapeJsString(task.promptText)
-        let injectScript = "window.__AIBI_RUNTIME__.injectPrompt(\(configJson(config)), '\(escapedPrompt)', \(task.forceFill))"
+        // 숨김 WebView는 isUserInteractionEnabled = false라 사용자가 직접 타이핑할 수 없다.
+        // 그 작성기에 남아 있는 내용은 실제 사용자 초안이 아니라 이전 자동화 시도의 잔여물뿐이므로
+        // 안전하게 덮어써도 된다. 화면에 노출된 뒤에는(escalateToVisible 이후) 사용자가 실제로
+        // 입력할 수 있으므로 기존의 보존 규칙을 그대로 따른다.
+        let safeToOverwrite = task.forceFill || !isVisibleBrowserPresented
+        let injectScript = "window.__AIBI_RUNTIME__.injectPrompt(\(configJson(config)), '\(escapedPrompt)', \(safeToOverwrite))"
         let verifyScript = "window.__AIBI_RUNTIME__.verifyPromptInjected(\(configJson(config)), '\(escapedPrompt)')"
 
         var attempt = 0
