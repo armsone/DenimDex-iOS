@@ -1,8 +1,8 @@
 import Foundation
 
 /// 번들에 포함된 `aibi-providers.json`, `aibi-browser-runtime.js`를 읽어 오는 로더.
-/// 두 리소스는 `/Users/armsone/.codex/skills/aibi/assets`의 canonical 산출물을 그대로 옮긴 것이며
-/// DenimDex 제품 지식을 담지 않는다.
+/// 두 리소스는 `/Users/armsone/git/AIBI/packages/{runtime,providers}`의 canonical 산출물(AIBI 0.5.0)을
+/// 그대로 옮긴 것이며 DenimDex 제품 지식을 담지 않는다.
 enum AIBIProviderRegistry {
     private struct Root: Codable {
         var providers: [String: AIBIProviderConfig]

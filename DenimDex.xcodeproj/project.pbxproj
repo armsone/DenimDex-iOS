@@ -18,6 +18,7 @@
 		BF_AIBIModels /* AIBIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIModels /* AIBIModels.swift */; };
 		BF_AIBIMediaPipeline /* AIBIMediaPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIMediaPipeline /* AIBIMediaPipeline.swift */; };
 		BF_AIBISession /* AIBISession.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBISession /* AIBISession.swift */; };
+		BF_AIBIDiagnosticsStore /* AIBIDiagnosticsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIDiagnosticsStore /* AIBIDiagnosticsStore.swift */; };
 		BF_AIBIWebViewRepresentable /* AIBIWebViewRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIWebViewRepresentable /* AIBIWebViewRepresentable.swift */; };
 		BF_AIBIProviderRegistry /* AIBIProviderRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBIProviderRegistry /* AIBIProviderRegistry.swift */; };
 		BF_AIBILoginProbe /* AIBILoginProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_AIBILoginProbe /* AIBILoginProbe.swift */; };
@@ -75,6 +76,7 @@
 		FR_AIBIModels /* AIBIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIModels.swift; sourceTree = "<group>"; };
 		FR_AIBIMediaPipeline /* AIBIMediaPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIMediaPipeline.swift; sourceTree = "<group>"; };
 		FR_AIBISession /* AIBISession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBISession.swift; sourceTree = "<group>"; };
+		FR_AIBIDiagnosticsStore /* AIBIDiagnosticsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIDiagnosticsStore.swift; sourceTree = "<group>"; };
 		FR_AIBIWebViewRepresentable /* AIBIWebViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIWebViewRepresentable.swift; sourceTree = "<group>"; };
 		FR_AIBIProviderRegistry /* AIBIProviderRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIProviderRegistry.swift; sourceTree = "<group>"; };
 		FR_AIBILoginProbe /* AIBILoginProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBILoginProbe.swift; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 				FR_AIBIModels,
 				FR_AIBIMediaPipeline,
 				FR_AIBISession,
+				FR_AIBIDiagnosticsStore,
 				FR_AIBIWebViewRepresentable,
 				FR_AIBIProviderRegistry,
 				FR_AIBILoginProbe,
@@ -405,6 +408,7 @@
 				BF_AIBIModels,
 				BF_AIBIMediaPipeline,
 				BF_AIBISession,
+				BF_AIBIDiagnosticsStore,
 				BF_AIBIWebViewRepresentable,
 				BF_AIBIProviderRegistry,
 				BF_AIBILoginProbe,
@@ -477,7 +481,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T7B4EPLHPK;
-				CURRENT_PROJECT_VERSION = 202608312019;
+				CURRENT_PROJECT_VERSION = 202609101658;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -487,7 +491,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -505,7 +509,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T7B4EPLHPK;
-				CURRENT_PROJECT_VERSION = 202608312019;
+				CURRENT_PROJECT_VERSION = 202609101658;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -515,7 +519,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

@@ -146,6 +146,10 @@ struct AIBITimingProfile {
     var visibleAutoFillTimeout: TimeInterval = 45.0
     var observationCadence: TimeInterval = 0.7
     var stabilityRequiredTicks: Int = 2
+    /// Finite bound on result observation after a verified generation start (portable contract:
+    /// 119 seconds). Reaching it ends the task with a clear failure instead of waiting forever.
+    /// DenimDex's host-owned 90s Quick Value timeout (QuickValueRunner) normally fires first.
+    var observationTimeout: TimeInterval = 119.0
 
     static let `default` = AIBITimingProfile()
 }

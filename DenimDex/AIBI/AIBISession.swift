@@ -1,9 +1,12 @@
 //
 //  AIBISession.swift
 //  Portable AIBI core orchestrator — adapted from the canonical AIBI Apple reference
-//  (/Users/armsone/.codex/skills/aibi/assets/apple/AIBIEngine.swift).
+//  (/Users/armsone/git/AIBI/packages/apple/AIBIEngine.swift, aibi-apple-0.5.0).
 //  No DenimDex product knowledge lives here: prompt text, result schema, and value
 //  rules belong to the host layer (Services/, Features/Scan).
+//
+//  Submission is one-shot per task (dispatch once, then observe only) and every lifecycle
+//  stage is recorded in the bounded, privacy-safe AIBIDiagnosticsStore.
 //
 
 import Foundation
@@ -23,6 +26,12 @@ final class AIBISession: NSObject, ObservableObject {
     var timingProfile: AIBITimingProfile = .default
     weak var resultSink: AIBIResultSink?
 
+    /// Bounded, privacy-safe on-device diagnostics. The host shares `AIBIDiagnosticsStore.shared`
+    /// with its Settings export action; set to nil to disable recording entirely.
+    /// Diagnostics never change task outcome: storage failures are absorbed by the store.
+    var diagnosticsStore: AIBIDiagnosticsStore? = .shared
+    private(set) var diagnosticRunID: UUID?
+
     private var activeTask: AIBITask?
     private var activeConfig: AIBIProviderConfig?
     private var generationId: UInt64 = 0
@@ -40,10 +49,19 @@ final class AIBISession: NSObject, ObservableObject {
     private var baselineAssistantCount: Int = 0
     private var stabilityText: String?
     private var stabilityTickCount: Int = 0
+    private var observationStartTime: Date?
     private var pendingAttachmentURLs: [URL] = []
     private var nativeAttachmentPanelHandled = false
 
+    // One-shot submission state. Once a send has been dispatched for this task, the session only
+    // observes; it never re-clicks, re-submits, re-fills, or restarts a browser with text only.
+    private var submissionDispatched = false
+    private var submitAttemptInFlight = false
+    /// Total composer preview count expected immediately before send (baseline + requested).
+    private var expectedComposerAttachmentCount: Int?
+
     private var runtimeJavaScript: String = ""
+    private var runtimeInjectionFailureLogged = false
 
     init(runtimeJs: String, configuration: WKWebViewConfiguration? = nil) {
         self.runtimeJavaScript = runtimeJs
@@ -69,14 +87,23 @@ final class AIBISession: NSObject, ObservableObject {
         self.taskStartTime = Date()
         self.lastErrorMessage = nil
         self.pendingResult = nil
+        self.submissionDispatched = false
+        self.submitAttemptInFlight = false
+        self.expectedComposerAttachmentCount = nil
+        self.observationStartTime = nil
+        self.runtimeInjectionFailureLogged = false
+        self.diagnosticRunID = diagnosticsStore?.start(provider: task.providerId)
 
         let media = providerConfig.mediaCapabilities
         if task.attachments.count > 20 ||
             (!task.attachments.isEmpty &&
                 (media?.supportsImages != true || task.attachments.count > (media?.maxImagesPerTask ?? 0))) {
+            log("media_preparation_failed", ["expected_count": task.attachments.count])
             failWithError("이 작업에서는 사진 첨부를 지원하지 않습니다.")
             return
         }
+        // Attachments arrive already normalized by the host media pipeline; record counts only.
+        log("media_prepared", ["prepared_count": task.attachments.count, "prompt_length": task.promptText.count])
 
         updatePhase(.initializing, message: "\(providerConfig.displayName)에 연결하는 중…")
         startElapsedTimer()
@@ -118,30 +145,88 @@ final class AIBISession: NSObject, ObservableObject {
     func cancelCurrentTask() {
         stopAllTimers()
         generationId &+= 1
+        if isRunActive { log("run_cancelled") }
         clearPendingAttachmentFiles()
         if currentPhase != .idle {
             updatePhase(.cancelled, message: "취소됨")
         }
         destroyHiddenBrowser()
+        // activeProviderId is preserved so manual paste remains available if the visible view is open.
     }
 
     func fullReset() {
         stopAllTimers()
         generationId &+= 1
+        if isRunActive { log("run_cancelled") }
+        clearPendingAttachmentFiles()
+        // Tear down browsers while activeConfig is still set so the teardown drain can run.
+        destroyHiddenBrowser()
+        destroyVisibleBrowser()
         activeTask = nil
         activeConfig = nil
         activeProviderId = nil
         pendingResult = nil
         lastErrorMessage = nil
-        clearPendingAttachmentFiles()
-        destroyHiddenBrowser()
-        destroyVisibleBrowser()
+        diagnosticRunID = nil
         updatePhase(.idle, message: "대기 중")
     }
 
     func dismissVisibleBrowserForCancel() {
         cancelCurrentTask()
         destroyVisibleBrowser()
+    }
+
+    // MARK: - Diagnostics (privacy-safe, never affects task outcome)
+
+    /// A run is active while a task may still produce a result. Terminal phases are excluded so
+    /// starting the next task does not stamp a spurious cancellation on the previous run.
+    private var isRunActive: Bool {
+        switch currentPhase {
+        case .idle, .completed, .failed, .cancelled: return false
+        default: return true
+        }
+    }
+
+    private func log(_ event: String, _ metrics: [String: Int] = [:]) {
+        guard let store = diagnosticsStore, let runID = diagnosticRunID else { return }
+        store.record(runID: runID, event: event, metrics: metrics)
+    }
+
+    /// Pulls the runtime's bounded diagnostic queue (request start/response/failure counters
+    /// only) into the store. The runtime returns nothing but allowlisted stage names and integer
+    /// metrics; the store validates every value again before persisting.
+    private func drainRuntimeDiagnostics(webView: WKWebView) async {
+        guard let store = diagnosticsStore, let runID = diagnosticRunID, let config = activeConfig else { return }
+        let script = "window.__AIBI_RUNTIME__.drainDiagnostics(\(configJson(config)))"
+        guard let result = try? await evaluateScript(script, on: webView),
+              let json = parseJson(result),
+              json["success"] as? Bool == true,
+              let data = json["data"] as? [String: Any] else { return }
+        for event in AIBIDiagnosticsStore.runtimeEvents(from: data["events"]) {
+            store.record(runID: runID, event: event.stage, metrics: event.metrics)
+        }
+    }
+
+    /// Best-effort drain before a WKWebView is torn down. The web view is captured strongly so
+    /// the page survives until the callback fires; late results for a superseded run are dropped
+    /// by the store because only the current run accepts events.
+    private func drainRuntimeDiagnosticsBeforeTeardown(_ webView: WKWebView?) {
+        guard let webView, diagnosticsStore != nil, let runID = diagnosticRunID, let config = activeConfig,
+              let url = webView.url, originAllowed(url, in: config.allowedScriptOrigins) else { return }
+        let script = "window.__AIBI_RUNTIME__.drainDiagnostics(\(configJson(config)))"
+        webView.evaluateJavaScript(script) { [weak self] result, error in
+            _ = webView
+            guard error == nil, let string = result as? String else { return }
+            Task { @MainActor [weak self] in
+                guard let self, let store = self.diagnosticsStore,
+                      let json = self.parseJson(string),
+                      json["success"] as? Bool == true,
+                      let data = json["data"] as? [String: Any] else { return }
+                for event in AIBIDiagnosticsStore.runtimeEvents(from: data["events"]) {
+                    store.record(runID: runID, event: event.stage, metrics: event.metrics)
+                }
+            }
+        }
     }
 
     // MARK: - State machine
@@ -180,6 +265,7 @@ final class AIBISession: NSObject, ObservableObject {
                 guard let self, self.generationId == generation else { timer.invalidate(); return }
                 if Date().timeIntervalSince(startTime) > self.timingProfile.readinessTimeout {
                     timer.invalidate()
+                    self.log("composer_missing", ["composer_present": 0, "attempt": min(1000, self.consecutiveMisses)])
                     self.failWithError("ChatGPT 입력 화면을 준비하지 못했습니다. 잠시 후 다시 시도해주세요.")
                     return
                 }
@@ -191,6 +277,7 @@ final class AIBISession: NSObject, ObservableObject {
     private func performReadinessProbe(generation: UInt64, timer: Timer) async {
         guard let config = activeConfig, let webView = activeWebView else { return }
         await ensureRuntimeInjected(webView: webView)
+        guard generationId == generation else { return }
 
         let script = "window.__AIBI_RUNTIME__.checkReadiness(\(configJson(config)))"
         guard let result = try? await evaluateScript(script, on: webView) else { return }
@@ -210,6 +297,7 @@ final class AIBISession: NSObject, ObservableObject {
         }
         if isReady {
             timer.invalidate()
+            log("composer_found", ["composer_present": 1])
             await recordBaselineAndInject(generation: generation)
         } else if reason == "INPUT_NOT_FOUND" {
             consecutiveMisses += 1
@@ -229,20 +317,24 @@ final class AIBISession: NSObject, ObservableObject {
            let json = parseJson(baselineResult), let data = json["data"] as? [String: Any] {
             self.baselineAssistantCount = data["assistantCount"] as? Int ?? 0
         }
+        guard generationId == generation else { return }
 
         if !task.attachments.isEmpty {
             let attached = await attachImagesAtomically(task.attachments, config: config, webView: webView, generation: generation)
             guard attached else {
                 if generationId == generation {
+                    log("attachment_failed", ["expected_count": task.attachments.count])
                     failWithError("사진을 ChatGPT에 모두 첨부하지 못했습니다. 다시 시도해주세요.")
                 }
                 return
             }
         }
+        guard generationId == generation else { return }
 
         // ChatGPT는 첨부 직후나 초기 hydration 중에 작성기 DOM 노드를 자주 교체한다
         // (aibi-providers.json chatgpt.quirks.lateDomReplacement). 첫 번째 일시적 실패나
         // 검증 불일치에서 바로 실패로 단정하지 않고, 유한한 횟수만큼 다시 찾아 재시도한다.
+        // 재시도는 전송 전(dispatch 이전)에만 일어난다; 전송 후에는 런타임이 SUBMISSION_PENDING을 돌려준다.
         let escapedPrompt = escapeJsString(task.promptText)
         // 숨김 WebView는 isUserInteractionEnabled = false라 사용자가 직접 타이핑할 수 없다.
         // 그 작성기에 남아 있는 내용은 실제 사용자 초안이 아니라 이전 자동화 시도의 잔여물뿐이므로
@@ -276,15 +368,18 @@ final class AIBISession: NSObject, ObservableObject {
                    let verifyData = verifyJson["data"] as? [String: Any] {
                     verifiedMatch = verifyData["matches"] as? Bool ?? false
                 }
+                guard generationId == generation else { return }
             }
 
             switch Self.classifyInjectionAttempt(injectSucceeded: injectSucceeded, injectCode: injectCode, verifiedMatch: verifiedMatch) {
             case .injected:
+                log("prompt_inserted", ["prompt_length": task.promptText.count, "attempt": attempt])
                 startSubmissionLoop(generation: generation)
                 return
             case .terminal:
                 // 사용자가 입력창에 이미 다른 내용을 남겨둔 경우: force 없이는 절대 덮어쓰지 않고,
                 // 재시도도 하지 않는다.
+                log("prompt_failed", ["attempt": attempt, "prompt_present": 1])
                 failWithError("ChatGPT 입력창에 이미 다른 내용이 있어 자동 입력을 건너뛰었습니다. 직접 확인해주세요.")
                 return
             case .retryable:
@@ -293,6 +388,7 @@ final class AIBISession: NSObject, ObservableObject {
         }
 
         guard generationId == generation else { return }
+        log("prompt_failed", ["attempt": attempt, "prompt_present": 0])
         failWithError("ChatGPT 입력 화면을 제어하지 못했습니다. 다시 시도해주세요.")
     }
 
@@ -314,9 +410,15 @@ final class AIBISession: NSObject, ObservableObject {
 
     private func attachImagesAtomically(_ attachments: [AIBIMediaAttachment], config: AIBIProviderConfig, webView: WKWebView, generation: UInt64) async -> Bool {
         updatePhase(.attachingMedia, message: "사진 \(attachments.count)장 첨부하는 중…", isWaiting: true)
+        log("attachment_started", ["expected_count": attachments.count])
         let encodedConfig = configJson(config)
         let stateScript = "window.__AIBI_RUNTIME__.getAttachmentState(\(encodedConfig))"
         let baseline = (try? await evaluateScript(stateScript, on: webView)).flatMap(parseAttachmentPreviewCount) ?? 0
+        guard generationId == generation else { return false }
+        // Count previews inside the current composer only; the same total is re-checked
+        // immediately before the one-shot send.
+        let expectedTotal = baseline + attachments.count
+        expectedComposerAttachmentCount = expectedTotal
 
         if #available(iOS 18.4, *) {
             do {
@@ -324,13 +426,19 @@ final class AIBISession: NSObject, ObservableObject {
                 nativeAttachmentPanelHandled = false
                 for _ in 0..<3 where generationId == generation && !nativeAttachmentPanelHandled {
                     _ = try? await evaluateScript("window.__AIBI_RUNTIME__.prepareAttachmentInput(\(encodedConfig))", on: webView)
+                    guard generationId == generation else { return false }
                     _ = try? await evaluateScript("window.__AIBI_RUNTIME__.openAttachmentPanel(\(encodedConfig))", on: webView)
                     try? await Task.sleep(nanoseconds: 700_000_000)
                 }
-                if nativeAttachmentPanelHandled, await waitForAttachmentCount(baseline + attachments.count, stateScript: stateScript, webView: webView, generation: generation) {
-                    clearPendingAttachmentFiles()
+                guard generationId == generation else { return false }
+                if nativeAttachmentPanelHandled,
+                   await waitForAttachmentCount(expectedTotal, stateScript: stateScript, webView: webView, generation: generation) {
+                    // A preview only proves that the provider accepted the local file selection.
+                    // Keep the source URLs alive through the full task: ChatGPT can continue
+                    // reading them while the prompt is already visible in the conversation.
                     return true
                 }
+                guard generationId == generation else { return false }
                 clearPendingAttachmentFiles()
             } catch {
                 clearPendingAttachmentFiles()
@@ -348,6 +456,7 @@ final class AIBISession: NSObject, ObservableObject {
               parseJson(beginResult)?["success"] as? Bool == true else { return false }
 
         for (index, attachment) in ordered.enumerated() {
+            guard generationId == generation else { return false }
             let image = ["dataUrl": attachment.dataURL, "mimeType": attachment.mimeType, "filename": attachment.filename]
             guard let imageData = try? JSONSerialization.data(withJSONObject: image),
                   let imageJson = String(data: imageData, encoding: .utf8),
@@ -357,20 +466,38 @@ final class AIBISession: NSObject, ObservableObject {
                 return false
             }
         }
+        // A cancelled task must not commit a replacement upload into the provider composer.
+        guard generationId == generation else {
+            _ = try? await evaluateScript("window.__AIBI_RUNTIME__.clearAttachmentBatch()", on: webView)
+            return false
+        }
         guard let attachResult = try? await evaluateScript("window.__AIBI_RUNTIME__.commitAttachmentBatch(\(encodedConfig))", on: webView),
               parseJson(attachResult)?["success"] as? Bool == true else { return false }
+        log("attachment_dispatched", ["attached_count": ordered.count])
 
-        return await waitForAttachmentCount(baseline + attachments.count, stateScript: stateScript, webView: webView, generation: generation)
+        return await waitForAttachmentCount(expectedTotal, stateScript: stateScript, webView: webView, generation: generation)
     }
 
     private func waitForAttachmentCount(_ expectedCount: Int, stateScript: String, webView: WKWebView, generation: UInt64) async -> Bool {
         let deadline = Date().addingTimeInterval(timingProfile.attachmentTimeout)
+        var lastObserved: Int?
         while generationId == generation && Date() < deadline {
             if let state = try? await evaluateScript(stateScript, on: webView),
-               let count = parseAttachmentPreviewCount(state), count == expectedCount {
-                return true
+               let count = parseAttachmentPreviewCount(state) {
+                guard generationId == generation else { return false }
+                if count == expectedCount {
+                    log("attachment_ready", ["attached_count": count, "expected_count": expectedCount])
+                    return true
+                }
+                if count != lastObserved {
+                    lastObserved = count
+                    log("attachment_progress", ["preview_count": count, "expected_count": expectedCount])
+                }
             }
             try? await Task.sleep(nanoseconds: UInt64(timingProfile.attachmentCadence * 1_000_000_000))
+        }
+        if generationId == generation {
+            log("attachment_timeout", ["expected_count": expectedCount, "preview_count": lastObserved ?? 0])
         }
         return false
     }
@@ -402,20 +529,24 @@ final class AIBISession: NSObject, ObservableObject {
         return data["previewCount"] as? Int
     }
 
+    /// One-shot submission. The send is dispatched at most once per task; every later tick only
+    /// observes for a verified generation start (new assistant node or visible generation mark).
+    /// An empty composer or a user message card is "pending", not proof that a response started.
     private func startSubmissionLoop(generation: UInt64) {
         stateTimer?.invalidate()
-        submitAttemptCount = 1
+        submitAttemptCount = 0
+        submissionDispatched = false
+        submitAttemptInFlight = false
         let startTime = Date()
         updatePhase(.submitting, message: "프롬프트 전송하는 중…")
+        log("send_ready", ["expected_count": expectedComposerAttachmentCount ?? 0])
 
         stateTimer = Timer.scheduledTimer(withTimeInterval: timingProfile.submitCadence + timingProfile.submitVerificationDelay, repeats: true) { [weak self] timer in
             Task { @MainActor [weak self] in
                 guard let self, self.generationId == generation else { timer.invalidate(); return }
                 if Date().timeIntervalSince(startTime) > self.timingProfile.submitTimeout {
                     timer.invalidate()
-                    // ChatGPT가 전송을 받았어도 모바일 DOM의 확인 표식이 늦는 경우가 있다.
-                    // 브라우저를 노출하거나 재전송하지 말고 기존 대화의 결과 관찰로 이어간다.
-                    self.startObservationLoop(generation: generation)
+                    self.handleSubmitTimeout(generation: generation)
                     return
                 }
                 await self.performSubmitAttempt(generation: generation, timer: timer)
@@ -423,23 +554,78 @@ final class AIBISession: NSObject, ObservableObject {
         }
     }
 
+    private func handleSubmitTimeout(generation: UInt64) {
+        guard generationId == generation else { return }
+        if submissionDispatched {
+            // 프롬프트(와 사진)가 이미 ChatGPT에 소비됐을 수 있다. 재전송·텍스트만 다시 채우기·새 브라우저 열기는
+            // 요청을 중복시키거나 사진을 빠뜨릴 수 있으므로, 명확한 실패와 구체적인 사용자 행동으로 끝낸다.
+            log("send_timeout", ["attempt": submitAttemptCount, "attachment_verified": 1])
+            failWithError("프롬프트는 전송됐지만 제한 시간 안에 답변이 시작되지 않았습니다. ChatGPT 화면에서 보낸 메시지를 확인한 뒤, 설정의 AI 진단 로그를 공유하고 다시 시도해주세요.")
+        } else {
+            // 아무것도 전송되지 않았다: 프롬프트와 첨부가 아직 작성기에 남아 있으므로
+            // 텍스트만 재전송하지 않고 보이는 브라우저(또는 hiddenOnly 실패 메시지)로 넘긴다.
+            log("send_timeout", ["attempt": submitAttemptCount, "attachment_verified": 0])
+            escalateToVisible(reason: .inputMissing)
+        }
+    }
+
     private func performSubmitAttempt(generation: UInt64, timer: Timer) async {
         guard let config = activeConfig, let webView = activeWebView else { return }
-        let submitScript = "window.__AIBI_RUNTIME__.submitPrompt(\(configJson(config)), \(submitAttemptCount))"
-        _ = try? await evaluateScript(submitScript, on: webView)
-        guard generationId == generation else { return }
+        // A tick can outlast the cadence while awaiting JS; never let two ticks race the send.
+        guard !submitAttemptInFlight else { return }
+        submitAttemptInFlight = true
+        defer { submitAttemptInFlight = false }
+
+        let encodedConfig = configJson(config)
+
+        if !submissionDispatched {
+            // 전송 직전, 요청한 첨부가 전부 현재 작성기에 남아 있는지 다시 센다.
+            // 첨부 뒤에 소비되거나 빠진 사진이 있으면 텍스트만 전송되는 것을 막는다.
+            if let expected = expectedComposerAttachmentCount {
+                let state = try? await evaluateScript("window.__AIBI_RUNTIME__.getAttachmentState(\(encodedConfig))", on: webView)
+                guard generationId == generation else { return }
+                let current = state.flatMap(parseAttachmentPreviewCount)
+                guard current == expected else {
+                    log("send_blocked", ["expected_count": expected, "preview_count": current ?? 0, "attachment_verified": 0])
+                    return
+                }
+            }
+
+            guard generationId == generation, !submissionDispatched else { return }
+            submitAttemptCount += 1
+            let submitScript = "window.__AIBI_RUNTIME__.submitPrompt(\(encodedConfig), \(submitAttemptCount))"
+            let submitResult = try? await evaluateScript(submitScript, on: webView)
+            guard generationId == generation else { return }
+
+            if let submitResult,
+               let json = parseJson(submitResult),
+               json["success"] as? Bool == true,
+               let data = json["data"] as? [String: Any],
+               data["attempted"] as? Bool == true {
+                submissionDispatched = true
+                log("send_attempted", ["attempt": submitAttemptCount, "attachment_verified": expectedComposerAttachmentCount == nil ? 0 : 1])
+            } else {
+                // 아직 전송 대상이 없다(작성기 hydration 중, 버튼 비활성). 다음 틱을 기다린다.
+                // 런타임도 페이지당 최대 한 번만 전송하도록 보장한다.
+                return
+            }
+        }
 
         try? await Task.sleep(nanoseconds: UInt64(timingProfile.submitVerificationDelay * 1_000_000_000))
         guard generationId == generation else { return }
 
-        let verifyScript = "window.__AIBI_RUNTIME__.verifySubmission(\(configJson(config)), \(baselineAssistantCount))"
-        if let verifyResult = try? await evaluateScript(verifyScript, on: webView),
+        await drainRuntimeDiagnostics(webView: webView)
+        guard generationId == generation else { return }
+
+        let verifyScript = "window.__AIBI_RUNTIME__.verifySubmission(\(encodedConfig), \(baselineAssistantCount))"
+        let verifyResult = try? await evaluateScript(verifyScript, on: webView)
+        guard generationId == generation else { return }
+        if let verifyResult,
            let json = parseJson(verifyResult), let data = json["data"] as? [String: Any],
            data["submitted"] as? Bool == true {
             timer.invalidate()
+            log("send_observed", ["attempt": submitAttemptCount])
             startObservationLoop(generation: generation)
-        } else {
-            submitAttemptCount += 1
         }
     }
 
@@ -453,11 +639,20 @@ final class AIBISession: NSObject, ObservableObject {
         dismissHiddenBrowserInputUI()
         stabilityText = nil
         stabilityTickCount = 0
+        observationStartTime = Date()
         updatePhase(.generating, message: "답변을 기다리는 중…", isWaiting: true)
+        log("generation_started", ["generation_active": 1])
 
         stateTimer = Timer.scheduledTimer(withTimeInterval: timingProfile.observationCadence, repeats: true) { [weak self] timer in
             Task { @MainActor [weak self] in
                 guard let self, self.generationId == generation else { timer.invalidate(); return }
+                if let started = self.observationStartTime,
+                   Date().timeIntervalSince(started) > self.timingProfile.observationTimeout {
+                    timer.invalidate()
+                    self.log("generation_failed", ["generation_active": 0, "stable_samples": self.stabilityTickCount])
+                    self.failWithError("제한 시간 안에 답변이 도착하지 않았습니다. ChatGPT 화면을 확인한 뒤 다시 시도해주세요.")
+                    return
+                }
                 await self.performObservationTick(generation: generation, timer: timer)
             }
         }
@@ -465,6 +660,10 @@ final class AIBISession: NSObject, ObservableObject {
 
     private func performObservationTick(generation: UInt64, timer: Timer) async {
         guard let config = activeConfig, let webView = activeWebView, let task = activeTask else { return }
+
+        await drainRuntimeDiagnostics(webView: webView)
+        guard generationId == generation else { return }
+
         let script = "window.__AIBI_RUNTIME__.observeGeneration(\(configJson(config)), \(baselineAssistantCount))"
         guard let result = try? await evaluateScript(script, on: webView) else { return }
         guard generationId == generation else { return }
@@ -477,7 +676,10 @@ final class AIBISession: NSObject, ObservableObject {
         let errorMessage = data["errorMessage"] as? String
 
         if phaseStr == "FAILED", let err = errorMessage {
-            timer.invalidate(); failWithError(err); return
+            timer.invalidate()
+            log("generation_failed", ["generation_active": isGenerating ? 1 : 0, "response_length": rawText.count])
+            failWithError(err)
+            return
         }
         if phaseStr == "FALLBACK_REQUIRED" {
             timer.invalidate(); escalateToVisible(reason: .securityChallengePresented); return
@@ -488,9 +690,12 @@ final class AIBISession: NSObject, ObservableObject {
                 stabilityTickCount += 1
                 if stabilityTickCount >= timingProfile.stabilityRequiredTicks {
                     timer.invalidate()
+                    log("generation_completed", ["response_length": rawText.count, "stable_samples": stabilityTickCount + 1])
                     let cleanScript = "window.__AIBI_RUNTIME__.cleanOutput('\(escapeJsString(rawText))', '\(task.providerId)')"
                     var cleaned = rawText
-                    if let cleanResult = try? await evaluateScript(cleanScript, on: webView),
+                    let cleanResult = try? await evaluateScript(cleanScript, on: webView)
+                    guard generationId == generation else { return }
+                    if let cleanResult,
                        let cleanJson = parseJson(cleanResult), let cleanData = cleanJson["data"] as? [String: Any],
                        let cleanText = cleanData["cleanedText"] as? String {
                         cleaned = cleanText
@@ -501,6 +706,7 @@ final class AIBISession: NSObject, ObservableObject {
             } else {
                 stabilityText = rawText
                 stabilityTickCount = 0
+                log("generation_progress", ["response_length": rawText.count, "generation_active": 0])
                 updatePhase(.stabilizing, message: "답변을 받는 중…", isWaiting: true)
             }
         } else {
@@ -514,19 +720,29 @@ final class AIBISession: NSObject, ObservableObject {
 
     private func completeWithResult(_ result: AIBIResult) {
         stopAllTimers()
+        // Terminal transition: invalidate any in-flight async step of this task so it cannot
+        // click, attach, or report after the result has been committed.
+        generationId &+= 1
+        clearPendingAttachmentFiles()
         self.pendingResult = result
         UIPasteboard.general.string = result.cleanedText
 
         if let sink = resultSink {
             switch sink.commitResult(result) {
             case .success:
+                log("result_applied", ["response_length": result.cleanedText.count])
+                log("run_completed")
                 updatePhase(.completed, message: "가져오기 완료")
                 dismissVisibleBrowser()
                 destroyHiddenBrowser()
             case .failure(let err):
+                // Only the outcome is recorded; the host's error text never enters the log.
+                log("response_rejected", ["response_length": result.cleanedText.count])
                 updatePhase(.failed, message: "결과 검증 실패: \(err.localizedDescription)")
             }
         } else {
+            log("result_applied", ["response_length": result.cleanedText.count])
+            log("run_completed")
             updatePhase(.completed, message: "결과 준비됨")
             dismissVisibleBrowser()
             destroyHiddenBrowser()
@@ -535,7 +751,11 @@ final class AIBISession: NSObject, ObservableObject {
 
     private func failWithError(_ message: String) {
         stopAllTimers()
+        generationId &+= 1
+        clearPendingAttachmentFiles()
         self.lastErrorMessage = message
+        // The message may quote provider UI text; only the failure stage is recorded.
+        log("run_failed")
         updatePhase(.failed, message: message)
         destroyHiddenBrowser()
     }
@@ -550,6 +770,8 @@ final class AIBISession: NSObject, ObservableObject {
                 message = "ChatGPT 보안 확인이 필요합니다. 설정의 AI 로그인 관리에서 확인해주세요."
             case .navigationDisallowed:
                 message = "ChatGPT가 허용되지 않은 페이지로 이동했습니다. 설정에서 로그인 상태를 확인해주세요."
+            case .inputMissing:
+                message = "ChatGPT 전송 버튼을 찾지 못해 프롬프트를 보내지 못했습니다. 잠시 후 다시 시도해주세요."
             default:
                 message = "숨김 분석을 계속할 수 없습니다. 잠시 후 다시 시도해주세요."
             }
@@ -557,6 +779,10 @@ final class AIBISession: NSObject, ObservableObject {
             return
         }
         stopAllTimers()
+        // 이 세대의 숨김 자동화는 여기서 끝난다. 진행 중이던 비동기 단계가 늦게 전송·첨부하지 못하도록
+        // 세대를 올리고, 사용자 개입이 끝난 뒤의 재개는 새 세대로 진행한다.
+        generationId &+= 1
+        log("manual_takeover")
         updatePhase(.fallbackRequired, message: "필요한 작업을 위해 브라우저를 여는 중…")
         promoteCurrentBrowserToVisible()
 
@@ -566,7 +792,12 @@ final class AIBISession: NSObject, ObservableObject {
         }
 
         // 로그인이나 보안 확인을 사용자가 마치면 같은 페이지와 첨부 상태에서 자동 실행을 재개한다.
-        scheduleReadinessCheck(generation: generationId)
+        // 이미 전송이 dispatch된 뒤라면 다시 채우거나 재전송하지 않고 관찰만 이어간다.
+        if submissionDispatched {
+            startObservationLoop(generation: generationId)
+        } else {
+            scheduleReadinessCheck(generation: generationId)
+        }
     }
 
     // MARK: - Browser lifecycle
@@ -593,6 +824,8 @@ final class AIBISession: NSObject, ObservableObject {
     }
 
     private func destroyHiddenBrowser() {
+        // Flush queued runtime request diagnostics before the page goes away.
+        drainRuntimeDiagnosticsBeforeTeardown(hiddenWebView)
         hiddenWebView?.stopLoading()
         hiddenWebView?.navigationDelegate = nil
         hiddenWebView?.uiDelegate = nil
@@ -634,6 +867,7 @@ final class AIBISession: NSObject, ObservableObject {
     }
 
     private func destroyVisibleBrowser() {
+        drainRuntimeDiagnosticsBeforeTeardown(visibleWebView)
         visibleWebView?.stopLoading()
         visibleWebView?.navigationDelegate = nil
         visibleWebView?.uiDelegate = nil
@@ -649,6 +883,14 @@ final class AIBISession: NSObject, ObservableObject {
         let checkScript = "typeof window.__AIBI_RUNTIME__ !== 'undefined'"
         if let exists = try? await webView.evaluateJavaScript(checkScript) as? Bool, exists { return }
         _ = try? await webView.evaluateJavaScript(runtimeJavaScript)
+        if let injected = try? await webView.evaluateJavaScript(checkScript) as? Bool, injected {
+            runtimeInjectionFailureLogged = false
+            log("bridge_ready")
+        } else if !runtimeInjectionFailureLogged {
+            // Readiness probes retry injection every cadence tick; record the failure once.
+            runtimeInjectionFailureLogged = true
+            log("bridge_failed")
+        }
     }
 
     private func evaluateScript(_ script: String, on webView: WKWebView) async throws -> String {
@@ -741,6 +983,8 @@ extension AIBISession: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        // Stage only; the URL itself is never recorded.
+        log("browser_loaded")
         guard let url = webView.url, let config = activeConfig, originAllowed(url, in: config.allowedScriptOrigins) else { return }
         Task { @MainActor in await ensureRuntimeInjected(webView: webView) }
     }
@@ -751,6 +995,7 @@ extension AIBISession: WKNavigationDelegate {
     private func handleNavError(_ error: Error) {
         let nsError = error as NSError
         if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled { return }
+        log("browser_load_failed")
         failWithError("네트워크 오류: \(nsError.localizedDescription)")
     }
 }
@@ -762,15 +1007,15 @@ extension AIBISession: WKUIDelegate {
     func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping @MainActor @Sendable ([URL]?) -> Void) {
         let urls = pendingAttachmentURLs
         guard !urls.isEmpty, urls.count == 1 || parameters.allowsMultipleSelection else {
+            if !urls.isEmpty {
+                log("attachment_input_missing", ["expected_count": urls.count, "input_count": 1])
+            }
             completionHandler(nil); return
         }
         nativeAttachmentPanelHandled = true
-        pendingAttachmentURLs = []
+        log("attachment_dispatched", ["attached_count": urls.count])
+        // 원본 파일은 작업이 끝날 때까지(완료·실패·취소) 유지한다. ChatGPT는 프롬프트가 대화에
+        // 보인 뒤에도 파일을 계속 읽을 수 있으므로 여기서 미리 지우지 않는다.
         completionHandler(urls)
-        let directories = Set(urls.map { $0.deletingLastPathComponent() })
-        Task {
-            try? await Task.sleep(nanoseconds: 60_000_000_000)
-            directories.forEach { try? FileManager.default.removeItem(at: $0) }
-        }
     }
 }

@@ -17,6 +17,54 @@
   }
 
   const RUNTIME = {};
+  let submitDispatched = false;
+  let lastInjectedPrompt = '';
+  let diagnosticSequence = 0;
+  let lastSnapshot = '';
+  const diagnosticEvents = [];
+  const emitDiagnostic = (stage, metrics = {}) => {
+    if (diagnosticEvents.length < 200) diagnosticEvents.push({ stage, metrics });
+  };
+
+  // Observe only counts and fixed codes. Never retain request bodies, addresses or errors.
+  // The native store applies its own allowlist before persistence/export.
+  if (['chatgpt.com', 'chat.openai.com'].includes(location.hostname)) {
+    const originalFetch = window.fetch;
+    window.fetch = async function (resource, options) {
+      let kind = 0;
+      try {
+        const url = new URL(typeof resource === 'string' || resource instanceof URL ? resource : resource.url, location.href);
+        if (/conversation/.test(url.pathname)) kind = 2;
+        else if (/upload|files|estuary/.test(url.pathname) || /oaiusercontent|blob.core/.test(url.hostname)) kind = 1;
+      } catch (_) {}
+      const requestId = kind ? Math.min(1000, ++diagnosticSequence) : 0;
+      if (kind) {
+        let imageCount = 0;
+        let hasMessages = 0;
+        try {
+          if (typeof options?.body === 'string') {
+            const body = JSON.parse(options.body);
+            hasMessages = Array.isArray(body.messages) ? 1 : 0;
+            const walk = (value, depth) => {
+              if (!value || typeof value !== 'object' || depth > 12) return;
+              if (value.content_type === 'image_asset_pointer') imageCount++;
+              Object.values(value).forEach(child => { if (child && typeof child === 'object') walk(child, depth + 1); });
+            };
+            walk(body, 0);
+          }
+        } catch (_) {}
+        emitDiagnostic('request_started', {request_id: requestId, request_kind: kind, request_has_messages: hasMessages, image_count: Math.min(100, imageCount)});
+      }
+      try {
+        const response = await originalFetch.apply(this, arguments);
+        if (kind) emitDiagnostic('request_response', {request_id: requestId, request_kind: kind, http_status: response.status});
+        return response;
+      } catch (error) {
+        if (kind) emitDiagnostic('request_failed', {request_id: requestId, request_kind: kind, failure_kind: error?.name === 'AbortError' ? 1 : error?.name === 'TypeError' ? 2 : 3});
+        throw error;
+      }
+    };
+  }
 
   /**
    * Helper to query first matching element from a selector list.
@@ -100,18 +148,65 @@
     return rect.width > 0 && rect.height > 0;
   }
 
-  function visibleFamilyCount(selectors) {
+  function visibleFamilyCount(selectors, root = document) {
     if (!selectors) return 0;
     const list = Array.isArray(selectors) ? selectors : [selectors];
     let maximum = 0;
     for (const selector of list) {
       try {
-        const count = Array.from(document.querySelectorAll(selector)).filter(isVisible).length;
+        const count = Array.from(root.querySelectorAll(selector)).filter(isVisible).length;
         maximum = Math.max(maximum, count);
       } catch (_) {}
     }
     return maximum;
   }
+
+  function composerRoot(config) {
+    const input = queryFirst(config.selectors.promptInput);
+    return input && (input.closest('form') || input.parentElement?.parentElement?.parentElement);
+  }
+
+  function attachmentCount(config) {
+    const root = config.id === 'chatgpt' ? composerRoot(config) : document;
+    return root ? visibleFamilyCount(config.selectors.attachmentPreview, root) : 0;
+  }
+
+  function generationVisible(config) {
+    return queryAll(config.selectors.stopButton).some(isVisible);
+  }
+
+  function sendButton(config) {
+    const root = config.id === 'chatgpt' ? composerRoot(config) : document;
+    if (!root) return null;
+    return queryAll(config.selectors.submitButton, root).find(button => {
+      const meaning = `${button.getAttribute('aria-label') || ''} ${button.getAttribute('data-testid') || ''}`.toLowerCase();
+      return !/stop|중지|정지|voice|음성/.test(meaning) && isVisible(button);
+    }) || null;
+  }
+
+  RUNTIME.drainDiagnostics = function (config) {
+    try {
+      const input = queryFirst(config.selectors.promptInput);
+      const send = sendButton(config);
+      const root = composerRoot(config);
+      const snapshot = {
+        composer_present: input ? 1 : 0,
+        prompt_length: input ? (input.value || input.textContent || '').length : 0,
+        preview_count: attachmentCount(config),
+        input_count: queryAll(config.selectors.attachmentInput).length,
+        send_present: send ? 1 : 0,
+        send_enabled: send && !send.disabled && send.getAttribute('aria-disabled') !== 'true' ? 1 : 0,
+        generation_active: generationVisible(config) ? 1 : 0,
+        stop_present: generationVisible(config) ? 1 : 0,
+        assistant_message_present: queryPreferredAll(config.selectors.assistantMessage).length ? 1 : 0,
+        user_message_present: document.querySelector('[data-message-author-role="user"]') ? 1 : 0,
+        uploading_count: root ? queryAll(['[role="progressbar"]', '[aria-busy="true"]', '.animate-spin'], root).filter(isVisible).length : 0,
+      };
+      const encoded = JSON.stringify(snapshot);
+      if (encoded !== lastSnapshot) { emitDiagnostic('bridge_snapshot', snapshot); lastSnapshot = encoded; }
+    } catch (_) {}
+    return JSON.stringify({success: true, data: {events: diagnosticEvents.splice(0)}});
+  };
 
   function preferredAttachmentInput(config) {
     const selectors = config && config.selectors && config.selectors.attachmentInput;
@@ -293,7 +388,7 @@
           inputFound: !!input,
           allowsMultiple: !!(input && input.multiple),
           action: action,
-          previewCount: visibleFamilyCount(config.selectors.attachmentPreview),
+          previewCount: attachmentCount(config),
         },
       });
     } catch (err) {
@@ -355,7 +450,7 @@
         success: true,
         data: {
           acceptedCount: transfer.files.length,
-          previewCount: visibleFamilyCount(config.selectors.attachmentPreview),
+          previewCount: attachmentCount(config),
         },
       });
     } catch (err) {
@@ -429,7 +524,7 @@
     try {
       return JSON.stringify({
         success: true,
-        data: { previewCount: visibleFamilyCount(config.selectors.attachmentPreview) },
+        data: { previewCount: attachmentCount(config) },
       });
     } catch (err) {
       return JSON.stringify({ success: false, code: 'ATTACHMENT_STATE_FAILED', error: String(err && err.message ? err.message : err) });
@@ -443,6 +538,7 @@
    */
   RUNTIME.injectPrompt = function (config, promptText, force) {
     try {
+      if (submitDispatched) return JSON.stringify({success: false, code: 'SUBMISSION_PENDING', error: 'A request has already been dispatched.'});
       const inputEl = queryFirst(config.selectors.promptInput);
       if (!inputEl) {
         return JSON.stringify({
@@ -517,6 +613,8 @@
         inputEl.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
       }
 
+      lastInjectedPrompt = promptText;
+      emitDiagnostic('prompt_inserted', {prompt_length: promptText.length});
       return JSON.stringify({
         success: true,
         data: {
@@ -552,7 +650,8 @@
         inputEl.isContentEditable || inputEl.getAttribute('contenteditable') === 'true';
       const currentText = isContentEditable ? (inputEl.innerText || '').trim() : (inputEl.value || '').trim();
       const expected = String(promptText || '').trim();
-      const matches = expected.length > 0 && currentText === expected;
+      const normalize = value => value.replace(/\s+/g, ' ').trim();
+      const matches = expected.length > 0 && normalize(currentText) === normalize(expected);
 
       return JSON.stringify({
         success: true,
@@ -570,76 +669,24 @@
   };
 
   /**
-   * 4. Submission Escalation
-   * Escalates across multiple interaction modalities:
-   * Attempt 1: Button click
-   * Attempt 2: Pointer & Touch event sequence + Mouse click
-   * Attempt 3: Form requestSubmit / submit
-   * Attempt 4+: Enter keydown/keypress/keyup
+   * 4. One-shot submission. Readiness can be polled, but a dispatched request is
+   * observed only: clicking the same DOM node again could now press Stop.
    */
   RUNTIME.submitPrompt = function (config, attemptNumber) {
     try {
-      const submitBtn = queryFirst(config.selectors.submitButton);
+      if (submitDispatched) return JSON.stringify({success: true, data: {attempted: true, pending: true}});
+      const submitBtn = sendButton(config);
       const inputEl = queryFirst(config.selectors.promptInput);
-      const attempt = attemptNumber || 1;
-
-      if (attempt === 1) {
-        if (submitBtn && isVisible(submitBtn) && !submitBtn.disabled) {
-          submitBtn.click();
-          return JSON.stringify({ success: true, data: { modality: 'BUTTON_CLICK', attempt: 1 } });
-        }
+      const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
+      const current = inputEl ? normalize(inputEl.value || inputEl.innerText || inputEl.textContent) : '';
+      if (!inputEl || !submitBtn || submitBtn.disabled || submitBtn.getAttribute('aria-disabled') === 'true' ||
+          generationVisible(config) || !current || current !== normalize(lastInjectedPrompt)) {
+        return JSON.stringify({success: false, code: 'SEND_NOT_READY', error: 'The current composer is not ready to send.'});
       }
-
-      if (attempt === 2) {
-        if (submitBtn && isVisible(submitBtn)) {
-          const rect = submitBtn.getBoundingClientRect();
-          const clientX = rect.left + rect.width / 2;
-          const clientY = rect.top + rect.height / 2;
-          const opts = { bubbles: true, cancelable: true, clientX: clientX, clientY: clientY };
-
-          submitBtn.dispatchEvent(new PointerEvent('pointerdown', opts));
-          submitBtn.dispatchEvent(new MouseEvent('mousedown', opts));
-          submitBtn.dispatchEvent(new PointerEvent('pointerup', opts));
-          submitBtn.dispatchEvent(new MouseEvent('mouseup', opts));
-          submitBtn.click();
-          return JSON.stringify({ success: true, data: { modality: 'POINTER_TOUCH_CLICK', attempt: 2 } });
-        }
-      }
-
-      if (attempt === 3) {
-        const formEl = (inputEl && inputEl.closest('form')) || queryFirst('form');
-        if (formEl) {
-          if (typeof formEl.requestSubmit === 'function') {
-            formEl.requestSubmit(submitBtn || undefined);
-          } else {
-            formEl.submit();
-          }
-          return JSON.stringify({ success: true, data: { modality: 'FORM_REQUEST_SUBMIT', attempt: 3 } });
-        }
-      }
-
-      // Attempt 4+: Enter key dispatch on prompt input
-      if (inputEl) {
-        inputEl.focus();
-        const keyOpts = {
-          key: 'Enter',
-          code: 'Enter',
-          keyCode: 13,
-          which: 13,
-          bubbles: true,
-          cancelable: true,
-          composed: true,
-        };
-        inputEl.dispatchEvent(new KeyboardEvent('keydown', keyOpts));
-        inputEl.dispatchEvent(new KeyboardEvent('keypress', keyOpts));
-        inputEl.dispatchEvent(new KeyboardEvent('keyup', keyOpts));
-        return JSON.stringify({ success: true, data: { modality: 'ENTER_KEY_EVENT', attempt: attempt } });
-      }
-
-      return JSON.stringify({
-        success: false,
-        error: 'No valid submission target found for escalation.',
-      });
+      submitDispatched = true;
+      emitDiagnostic('send_attempted', {attempt: 1});
+      submitBtn.click();
+      return JSON.stringify({success: true, data: {modality: 'BUTTON_CLICK', attempt: 1, attempted: true, pending: true}});
     } catch (err) {
       return JSON.stringify({
         success: false,
@@ -650,13 +697,12 @@
 
   /**
    * 5. Submission Verification
-   * Verifies that the prompt was received: input cleared, assistant count incremented, or generating active.
+   * Input consumption is pending only. Require a new answer or visible generation.
    */
   RUNTIME.verifySubmission = function (config, baselineAssistantCount) {
     try {
       const inputEl = queryFirst(config.selectors.promptInput);
       const assistantEls = queryPreferredAll(config.selectors.assistantMessage);
-      const stopBtn = queryFirst(config.selectors.stopButton);
 
       let inputCleared = false;
       if (inputEl) {
@@ -667,9 +713,9 @@
       }
 
       const countIncreased = assistantEls.length > (baselineAssistantCount || 0);
-      const isGeneratingVisible = isVisible(stopBtn);
+      const isGeneratingVisible = generationVisible(config);
 
-      const isSubmitted = inputCleared || countIncreased || isGeneratingVisible;
+      const isSubmitted = countIncreased || isGeneratingVisible;
 
       return JSON.stringify({
         success: true,
@@ -733,8 +779,7 @@
       }
 
       // 3. Check for Generating State Indicator
-      const stopBtn = queryFirst(config.selectors.stopButton);
-      const isGenerating = isVisible(stopBtn);
+      const isGenerating = generationVisible(config);
 
       // 4. Extract Assistant Response
       const assistantEls = queryPreferredAll(config.selectors.assistantMessage);
@@ -786,6 +831,24 @@
     }
 
     let text = rawText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+
+    // Some providers expose their length-validation program and statistics together with
+    // the final prose. Only the last standalone Text: payload is a host result, and only
+    // when diagnostic markers prove this is a validation transcript rather than prose.
+    const hasValidationDiagnostics = /^(?:\s*print\s*\(|\s*Length\s+(?:with\s+spaces|without\s+newlines)\s*:|\s*Character\s+count\s*:|\s*글자\s*수\s*:|\s*len\s*\()/im.test(text);
+    if (hasValidationDiagnostics) {
+      const markers = Array.from(text.matchAll(/^\s*Text\s*:\s*$/gim));
+      const marker = markers[markers.length - 1];
+      if (marker) {
+        const validatedText = text.slice(marker.index + marker[0].length).trim();
+        if (validatedText) text = validatedText;
+      } else {
+        const assignments = Array.from(text.matchAll(/(?:^|\n)\s*(?:draft|text|caption|result|output)\s*=\s*(?:"""([\s\S]*?)"""|'''([\s\S]*?)''')/gi));
+        const assignment = assignments[assignments.length - 1];
+        const validatedText = assignment && (assignment[1] || assignment[2] || '').trim();
+        if (validatedText) text = validatedText;
+      }
+    }
 
     // 1. Remove outer markdown code fences
     // e.g. ```markdown ... ``` or ```text ... ``` or ``` ... ```

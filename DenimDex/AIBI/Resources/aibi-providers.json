@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "AIBI Provider Configurations",
-  "version": "1.1.0",
-  "updatedAt": "2026-08-28",
+  "version": "1.2.0",
+  "updatedAt": "2026-09-10",
   "volatilityNotice": "Web application DOM structures change frequently. Maintain and update these selector chains independently of core orchestrator logic.",
   "providers": {
     "gemini": {
@@ -61,8 +61,16 @@
         ],
         "loginIndicator": [
           "a[href*='accounts.google.com/ServiceLogin']",
+          "a[href*='accounts.google.com/InteractiveLogin']",
           "a[aria-label*='Sign in' i]",
           "button[aria-label*='로그인' i]"
+        ],
+        "authenticatedIndicator": [
+          "a[aria-label*='Google Account' i]",
+          "a[aria-label*='Google 계정' i]",
+          "a[href*='accounts.google.com/SignOutOptions']",
+          "a[href*='myaccount.google.com']",
+          "gem-user-menu"
         ],
         "challengeIndicator": [
           "iframe[src*='recaptcha']",
@@ -86,12 +94,12 @@
           "button[aria-label*='파일 추가']"
         ],
         "attachmentMenuAction": [
+          "images-files-uploader[data-test-id='uploader-images-files-button-advanced'] button",
+          "[data-test-id='uploader-images-files-button-advanced'] button",
           "button[aria-label='파일']",
           "[role='menuitem'][aria-label='파일']",
           "button[aria-label='Files']",
-          "[role='menuitem'][aria-label='Files']",
-          "button[data-test-id*='upload-file']",
-          "[data-test-id*='upload-file'][role='menuitem']"
+          "[role='menuitem'][aria-label='Files']"
         ],
         "attachmentMenuActionText": [
           "파일",
@@ -177,6 +185,13 @@
           "a[href*='/auth/login']",
           "button:contains('Log in')"
         ],
+        "authenticatedIndicator": [
+          "button[data-testid='profile-button']",
+          "button[data-testid='user-menu-button']",
+          "button[data-testid='user-menu']",
+          "button[data-testid='accounts-profile-button']",
+          "button[aria-label*='profile menu' i]"
+        ],
         "challengeIndicator": [
           "#cf-challenge-running",
           "iframe[src*='challenges.cloudflare.com']",
@@ -196,6 +211,12 @@
           "button[aria-label*='Add photos']",
           "button[aria-label*='사진']"
         ],
+        "attachmentMenuAction": [],
+        "attachmentMenuActionText": [
+          "사진",
+          "Photos",
+          "Upload photos"
+        ],
         "attachmentPreview": [
           "div[data-testid*='attachment']",
           "img[alt='Uploaded image']",
@@ -207,7 +228,7 @@
       },
       "quirks": {
         "lateDomReplacement": true,
-        "notes": "ChatGPT frequently replaces the prompt-textarea DOM node during initial hydration. If fill verification fails, reset fill state and re-locate node."
+        "notes": "ChatGPT can replace the composer during hydration. Re-locate and fill only before dispatch. Choose Photos from the plus menu, count current-composer previews, and retain native source files through task completion. Dispatch once; after input consumption observe only. Empty input is pending, not verified response start. Never re-click a button that may now mean Stop or voice."
       }
     },
     "claude": {
@@ -264,6 +285,10 @@
           "input[type='email'][name='email']",
           "a[href*='/login']",
           "button[data-testid*='login']"
+        ],
+        "authenticatedIndicator": [
+          "button[data-testid='user-menu-button']",
+          "button[data-testid='user-menu']"
         ],
         "challengeIndicator": [
           "iframe[src*='cloudflare']",

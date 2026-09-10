@@ -4,6 +4,7 @@ import WebKit
 
 struct SettingsView: View {
     @StateObject private var loginStore = AIBILoginStatusStore()
+    @ObservedObject private var diagnosticsStore = AIBIDiagnosticsStore.shared
     @State private var showLoginSheet = false
     @State private var showClearedConfirmation = false
     @Environment(\.modelContext) private var modelContext
@@ -64,6 +65,30 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 } header: {
                     Text("사진과 개인정보")
+                }
+
+                Section {
+                    if let exportURL = diagnosticsStore.exportURL {
+                        ShareLink(item: exportURL) {
+                            Label("AI 진단 로그 공유", systemImage: "square.and.arrow.up")
+                        }
+                        .accessibilityHint("가장 최근 AI 분석 실행의 단계 기록을 JSON 파일로 공유합니다")
+                    } else {
+                        Label("AI 진단 로그 공유", systemImage: "square.and.arrow.up")
+                            .foregroundStyle(.secondary)
+                        Text("아직 저장된 진단 로그가 없습니다. 가치 분석을 한 번 실행하면 로그가 만들어집니다.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    if let storageError = diagnosticsStore.storageError {
+                        Text(storageError)
+                            .font(.caption)
+                            .foregroundStyle(DenimTheme.warningAmber)
+                    }
+                } header: {
+                    Text("AI 진단 로그")
+                } footer: {
+                    Text("로그에는 실행 단계 이름, 경과 시간, 개수 같은 숫자만 담깁니다. 프롬프트·답변·사진·주소·오류 문구·로그인 정보는 기록되지 않으며, 이 버튼을 눌렀을 때만 공유됩니다.")
                 }
 
                 Section {

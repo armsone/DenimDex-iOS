@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "repositories": {
+    "denimdex-ios": {
+      "version": "0.5.0",
+      "files": {
+        "DenimDex/AIBI/Resources/aibi-browser-runtime.js": {
+          "sha256": "d460657527f3dc2a0c64eb8f272941b5eea4a17c31de1bb649dcd85f07599790",
+          "source": "packages/runtime/aibi-browser-runtime.js"
+        },
+        "DenimDex/AIBI/Resources/aibi-providers.json": {
+          "sha256": "66abea20a7a8461a3a6780925313bd1b43ab2f0b47311622f1afd4d6dda0b186",
+          "source": "packages/providers/aibi-providers.json"
+        },
+        "DenimDex/AIBI/AIBISession.swift": {
+          "sha256": "f62871d8fccfcd590c45a59ea7c20a6b1e180fa3f4bcc6173031f92cf9de05b1",
+          "source": "profiles/denimdex/distribution/apple/AIBISession.swift"
+        },
+        "DenimDex/AIBI/AIBIModels.swift": {
+          "sha256": "5171742b095d73dde9168da49a7e0aea26651634cf85873355afc6624da4772a",
+          "source": "profiles/denimdex/distribution/apple/AIBIModels.swift"
+        },
+        "DenimDex/AIBI/AIBIDiagnosticsStore.swift": {
+          "sha256": "39b70adfcfed792bffcd814be130b06dad44b192442d5cf5bfb32cb2f2fd15db",
+          "source": "profiles/denimdex/distribution/apple/AIBIDiagnosticsStore.swift"
+        }
+      }
+    }
+  },
+  "consumer": "denimdex",
+  "aibiVersion": "0.5.0"
+}
