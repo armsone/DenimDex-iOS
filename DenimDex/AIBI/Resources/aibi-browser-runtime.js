@@ -161,13 +161,61 @@
     return maximum;
   }
 
+  function isSafeComposerRoot(node, config) {
+    if (!node || node === document || node === document.body || node === document.documentElement || node.nodeType !== 1) {
+      return false;
+    }
+    if (node.tagName === 'BODY' || node.tagName === 'HTML') {
+      return false;
+    }
+    const historySelectors = [
+      'model-response',
+      'message-content',
+      'user-query',
+      '[data-test-id="model-response"]',
+      '[data-test-id="user-query"]',
+      '[data-testid="transcript-row"]',
+      '[data-testid*="conversation-turn"]',
+      '[data-testid*="assistant"]',
+      '[data-testid*="user-message"]',
+      '.font-claude-message',
+      '.font-claude-response',
+      '.font-user-message',
+      '[data-message-author-role]',
+      ...(config?.selectors?.assistantMessage ? (Array.isArray(config.selectors.assistantMessage) ? config.selectors.assistantMessage : [config.selectors.assistantMessage]) : [])
+    ];
+    for (const selector of historySelectors) {
+      try {
+        if ((node.matches && node.matches(selector)) || node.querySelector(selector)) {
+          return false;
+        }
+      } catch (_) {}
+    }
+    return true;
+  }
+
   function composerRoot(config) {
     const input = queryFirst(config.selectors.promptInput);
-    return input && (input.closest('form') || input.parentElement?.parentElement?.parentElement);
+    if (!input) return null;
+    const directCandidates = [
+      input.closest('form'),
+      input.closest('[data-testid="composer"]'),
+      input.closest('[class*="composer"]'),
+      input.closest('fieldset,[role="region"],[role="group"]'),
+      input.parentElement?.parentElement?.parentElement,
+      input.parentElement?.parentElement,
+      input.parentElement
+    ];
+    for (const candidate of directCandidates) {
+      if (candidate && isSafeComposerRoot(candidate, config)) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   function attachmentCount(config) {
-    const root = config.id === 'chatgpt' ? composerRoot(config) : document;
+    const root = composerRoot(config);
     return root ? visibleFamilyCount(config.selectors.attachmentPreview, root) : 0;
   }
 
@@ -176,12 +224,74 @@
   }
 
   function sendButton(config) {
-    const root = config.id === 'chatgpt' ? composerRoot(config) : document;
+    const root = composerRoot(config);
     if (!root) return null;
-    return queryAll(config.selectors.submitButton, root).find(button => {
-      const meaning = `${button.getAttribute('aria-label') || ''} ${button.getAttribute('data-testid') || ''}`.toLowerCase();
-      return !/stop|중지|정지|voice|음성/.test(meaning) && isVisible(button);
-    }) || null;
+
+    const selectors = config && config.selectors && config.selectors.submitButton;
+    if (!selectors) return null;
+    const selectorList = Array.isArray(selectors) ? selectors : [selectors];
+
+    function isExcludedCandidate(btn) {
+      const meaning = `${btn.getAttribute('aria-label') || ''} ${btn.getAttribute('data-testid') || ''} ${btn.getAttribute('title') || ''} ${btn.textContent || ''}`.toLowerCase();
+      if (/stop|중지|정지|중단|voice|음성|dictat|받아쓰기/.test(meaning)) {
+        return true;
+      }
+      if (/attach|첨부|upload|업로드|tool|도구|menu|메뉴|plus|추가|file|파일|photo|사진/.test(meaning)) {
+        return true;
+      }
+      return false;
+    }
+
+    function hasPositiveSemanticMeaning(btn) {
+      const meaning = `${btn.getAttribute('aria-label') || ''} ${btn.getAttribute('data-testid') || ''} ${btn.getAttribute('title') || ''} ${btn.textContent || ''}`.toLowerCase();
+      if (/send|submit|전송|보내기/.test(meaning)) {
+        return true;
+      }
+      if (btn.type === 'submit') {
+        return true;
+      }
+      try {
+        const svg = btn.querySelector('svg');
+        if (svg) {
+          const icon = `${svg.getAttribute('data-icon') || ''} ${svg.getAttribute('class') || ''} ${svg.getAttribute('aria-label') || ''}`.toLowerCase();
+          if (/paper-plane|arrow-up|send/.test(icon)) {
+            return true;
+          }
+        }
+      } catch (_) {}
+      return false;
+    }
+
+    // Evaluate selectors in precedence order
+    for (const selector of selectorList) {
+      let elements = [];
+      try {
+        elements = Array.from(root.querySelectorAll(selector));
+      } catch (_) {
+        continue;
+      }
+
+      const visibleCandidates = elements.filter(btn => isVisible(btn) && !isExcludedCandidate(btn));
+      if (visibleCandidates.length === 0) {
+        continue;
+      }
+
+      // Check for candidates with positive semantic confirmation
+      const semanticCandidates = visibleCandidates.filter(hasPositiveSemanticMeaning);
+      // Only return when exactly 1 positive semantic candidate is found
+      if (semanticCandidates.length === 1) {
+        return semanticCandidates[0];
+      }
+      if (semanticCandidates.length > 1) {
+        // Ambiguous multiple positive send candidates at this priority level -> block
+        return null;
+      }
+
+      // No positive semantic candidate at this priority level: proceed to next selector or null.
+      // Never accept an unknown button without positive send proof.
+    }
+
+    return null;
   }
 
   RUNTIME.drainDiagnostics = function (config) {
