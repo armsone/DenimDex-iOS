@@ -323,8 +323,14 @@ final class AIBISession: NSObject, ObservableObject {
             let attached = await attachImagesAtomically(task.attachments, config: config, webView: webView, generation: generation)
             guard attached else {
                 if generationId == generation {
-                    log("attachment_failed", ["expected_count": task.attachments.count])
-                    failWithError("사진을 ChatGPT에 모두 첨부하지 못했습니다. 다시 시도해주세요.")
+                    log("attachment_failed", ["expected_count": task.attachments.count, "attachment_verified": 0])
+                    // 개수 지표(preview/input/uploading)만 진단에 남긴다.
+                    await drainRuntimeDiagnostics(webView: webView)
+                    guard generationId == generation else { return }
+                    // AI 요청은 자동으로 보내지 않았지만 사진 파일은 이미 업로드됐을 수 있다. 숨김 브라우저를
+                    // 부수지 않고 보이는 화면으로 넘겨 사용자가 첨부 상태를 직접 확인할 수 있게 한다.
+                    // 부분 첨부 상태로 자동 전송하지 않는다.
+                    failPreservingBrowser("사진을 ChatGPT에 모두 첨부하지 못했습니다. AI 요청을 자동으로 보내지는 않았습니다. 열린 ChatGPT 화면에서 사진이 모두 첨부됐는지 확인한 뒤 직접 보내거나, 취소하고 다시 시도해주세요.")
                 }
                 return
             }
@@ -427,6 +433,11 @@ final class AIBISession: NSObject, ObservableObject {
                 for _ in 0..<3 where generationId == generation && !nativeAttachmentPanelHandled {
                     _ = try? await evaluateScript("window.__AIBI_RUNTIME__.prepareAttachmentInput(\(encodedConfig))", on: webView)
                     guard generationId == generation else { return false }
+                    // ChatGPT의 '사진' 메뉴 항목은 클릭만으로 파일 선택창을 연다. 그 선택창이 이미 처리됐다면
+                    // 입력 요소를 다시 클릭해 같은 파일을 두 번 고르지 않는다(중복 첨부는 개수 검증을 깨뜨린다).
+                    try? await Task.sleep(nanoseconds: 350_000_000)
+                    guard generationId == generation else { return false }
+                    if nativeAttachmentPanelHandled { break }
                     _ = try? await evaluateScript("window.__AIBI_RUNTIME__.openAttachmentPanel(\(encodedConfig))", on: webView)
                     try? await Task.sleep(nanoseconds: 700_000_000)
                 }
@@ -439,6 +450,12 @@ final class AIBISession: NSObject, ObservableObject {
                     return true
                 }
                 guard generationId == generation else { return false }
+                if nativeAttachmentPanelHandled {
+                    // 네이티브 선택창이 이미 파일을 넘겼다면 업로드는 성공했을 수 있다. 미리보기 개수만
+                    // 확인되지 않은 상태에서 DataTransfer로 다시 넣으면 같은 사진이 중복된다.
+                    // 폴백 없이 실패로 반환해 브라우저를 보존하고 사용자가 직접 확인하게 한다.
+                    return false
+                }
                 clearPendingAttachmentFiles()
             } catch {
                 clearPendingAttachmentFiles()

@@ -114,7 +114,7 @@ final class QuickValueRunner: ObservableObject, AIBIResultSink {
         runID = nil
         timeoutTask?.cancel()
         timeoutTask = nil
-        session.cancelCurrentTask()
+        session.dismissVisibleBrowserForCancel()
         state = .cancelled
     }
 
