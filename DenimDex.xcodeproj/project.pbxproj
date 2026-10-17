@@ -52,6 +52,7 @@
 		BF_TestMarketValue /* MarketValueCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestMarketValue /* MarketValueCalculatorTests.swift */; };
 		BF_TestImagePolicy /* QuickValueImagePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestImagePolicy /* QuickValueImagePolicyTests.swift */; };
 		BF_TestPromptInjectionRetry /* AIBIPromptInjectionRetryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestPromptInjectionRetry /* AIBIPromptInjectionRetryTests.swift */; };
+		BF_TestHanYangRefinement /* HanYangPhotoRefinementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_TestHanYangRefinement /* HanYangPhotoRefinementTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -111,6 +112,7 @@
 		FR_TestPromptInjectionRetry /* AIBIPromptInjectionRetryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBIPromptInjectionRetryTests.swift; sourceTree = "<group>"; };
 		FR_AppProduct /* DenimDex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DenimDex.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FR_TestsProduct /* DenimDexTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DenimDexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FR_TestHanYangRefinement /* HanYangPhotoRefinementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HanYangPhotoRefinementTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -283,6 +285,7 @@
 				FR_TestMarketValue,
 				FR_TestImagePolicy,
 				FR_TestPromptInjectionRetry,
+				FR_TestHanYangRefinement,
 			);
 			path = DenimDexTests;
 			sourceTree = "<group>";
@@ -444,6 +447,7 @@
 				BF_TestMarketValue,
 				BF_TestImagePolicy,
 				BF_TestPromptInjectionRetry,
+				BF_TestHanYangRefinement,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -481,7 +485,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T7B4EPLHPK;
-				CURRENT_PROJECT_VERSION = 202610171037;
+				CURRENT_PROJECT_VERSION = 202610171106;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -491,7 +495,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 0.3.6;
+				MARKETING_VERSION = 0.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -509,7 +513,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = T7B4EPLHPK;
-				CURRENT_PROJECT_VERSION = 202610171037;
+				CURRENT_PROJECT_VERSION = 202610171106;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = DenimDex;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -519,7 +523,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 0.3.6;
+				MARKETING_VERSION = 0.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDex;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -534,9 +538,9 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202608311818;
+				CURRENT_PROJECT_VERSION = 202610171106;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDexTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -551,9 +555,9 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202608311818;
+				CURRENT_PROJECT_VERSION = 202610171106;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.armsone.DenimDexTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

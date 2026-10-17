@@ -71,8 +71,9 @@ final class QuickValueRunner: ObservableObject, AIBIResultSink {
         // 큰 사진을 여러 장 골라도 화면과 카운트다운이 멈추지 않는다.
         preparationTask?.cancel()
         preparationTask = Task { [weak self] in
-            let prepared = await Task.detached(priority: .userInitiated) {
-                let selection = HanAIPhotoDeduplicator.selectRepresentatives(from: sourceImages)
+            let worker = Task.detached(priority: .userInitiated) {
+                let selection = try await HanAIPhotoDeduplicator.selectRepresentativesRefined(from: sourceImages)
+                try Task.checkCancellation()
                 let transferImages = Array(selection.images.prefix(QuickValuePhotoRoles.maxCount))
                 let transferRoles = Array(selection.keptIndices.map { index in
                     sourceRoles.indices.contains(index) ? sourceRoles[index] : "photo_\(index + 1)"
@@ -82,8 +83,25 @@ final class QuickValueRunner: ObservableObject, AIBIResultSink {
                     roles: transferRoles.map(Optional.some),
                     policy: QuickValueImagePolicy.normalizationPolicy(photoCount: transferImages.count)
                 )
+                try Task.checkCancellation()
                 return (selection, transferImages.count, transferRoles, attachments)
-            }.value
+            }
+            let prepared: (PhotoDeduplicationResult, Int, [String], [AIBIMediaAttachment]?)
+            do {
+                prepared = try await withTaskCancellationHandler {
+                    try await worker.value
+                } onCancel: {
+                    worker.cancel()
+                }
+            } catch {
+                // 취소 외 오류는 선택 단계에서 나오지 않지만, 어느 쪽이든 현재 run만 안전하게 종료한다.
+                guard let self, self.runID == requestID else { return }
+                self.preparationTask = nil
+                self.state = error is CancellationError
+                    ? .cancelled
+                    : .failed("사진을 전송용으로 준비하지 못했습니다. 사진을 확인하고 다시 시도해주세요.")
+                return
+            }
             guard !Task.isCancelled, let self, self.runID == requestID else { return }
             self.preparationTask = nil
             guard let attachments = prepared.3, attachments.count == prepared.1 else {

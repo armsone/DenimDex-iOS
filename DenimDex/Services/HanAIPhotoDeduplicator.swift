@@ -12,14 +12,51 @@ struct PhotoDeduplicationResult: Sendable {
 /// Apple Vision이 사진의 특징 거리를 만들고, 어떤 사진을 남길지는 한양의
 /// 플랫폼 공통 정책이 결정한다. 원본은 건드리지 않고 ChatGPT 전송 사본만 추린다.
 enum HanAIPhotoDeduplicator {
+    /// 기존 Vision 단독 경로. 캐시 없이 입력마다 계산하는 동결 baseline이다.
     static func selectRepresentatives(from images: [Data]) -> PhotoDeduplicationResult {
-        guard images.count > 1 else {
-            return PhotoDeduplicationResult(images: images, keptIndices: Array(images.indices), removedCount: 0)
-        }
-
+        guard images.count > 1 else { return unchanged(images) }
         let features = images.enumerated().map { index, data in
             feature(for: data, index: index)
         }
+        return select(images: images, features: features)
+    }
+
+    /// 한 배치 안에서 바이트가 완전히 같은 입력은 Vision 특징·비율·픽셀 수·선명도를 한 번만 계산한다.
+    /// PhotoFeature는 현재 입력 index마다 만들어 선택 정책·index·순서는 기존과 같다. 취소는 그대로 던진다.
+    static func selectRepresentativesRefined(from images: [Data]) async throws -> PhotoDeduplicationResult {
+        try Task.checkCancellation()
+        guard images.count > 1 else { return unchanged(images) }
+        var firstIndexByData: [Data: Int] = [:]
+        var features: [PhotoFeature] = []
+        features.reserveCapacity(images.count)
+        for (index, data) in images.enumerated() {
+            try Task.checkCancellation()
+            if let first = firstIndexByData[data] {
+                let cached = features[first]
+                features.append(PhotoFeature(
+                    index: index,
+                    observation: cached.observation,
+                    sharpness: cached.sharpness,
+                    pixelCount: cached.pixelCount,
+                    aspectRatio: cached.aspectRatio
+                ))
+            } else {
+                firstIndexByData[data] = index
+                features.append(feature(for: data, index: index))
+            }
+        }
+        try Task.checkCancellation()
+        return select(images: images, features: features)
+    }
+
+    private static func unchanged(_ images: [Data]) -> PhotoDeduplicationResult {
+        PhotoDeduplicationResult(images: images, keptIndices: Array(images.indices), removedCount: 0)
+    }
+
+    private static func select(
+        images: [Data],
+        features: [PhotoFeature]
+    ) -> PhotoDeduplicationResult {
         let candidates = features.map {
             ImageSimilarityCandidate(index: $0.index, sharpness: $0.sharpness, pixelCount: $0.pixelCount)
         }
