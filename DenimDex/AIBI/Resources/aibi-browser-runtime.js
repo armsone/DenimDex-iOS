@@ -207,6 +207,8 @@
       '.font-claude-response',
       '.font-user-message',
       '[data-message-author-role]',
+      '[data-user-message-bubble]',
+      '[data-conversation-role]',
       ...(config?.selectors?.assistantMessage ? (Array.isArray(config.selectors.assistantMessage) ? config.selectors.assistantMessage : [config.selectors.assistantMessage]) : [])
     ];
     for (const selector of historySelectors) {
@@ -401,7 +403,7 @@
         generation_active: generationVisible(config) ? 1 : 0,
         stop_present: generationVisible(config) ? 1 : 0,
         assistant_message_present: assistantMessages(config).length ? 1 : 0,
-        user_message_present: document.querySelector('[data-message-author-role="user"]') ? 1 : 0,
+        user_message_present: document.querySelector('[data-message-author-role="user"], [data-user-message-bubble]') ? 1 : 0,
         uploading_count: root ? queryAll(['[role="progressbar"]', '[aria-busy="true"]', '.animate-spin'], root).filter(isVisible).length : 0,
       };
       const encoded = JSON.stringify(snapshot);

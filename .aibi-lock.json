@@ -5,11 +5,11 @@
       "version": "0.5.4",
       "files": {
         "DenimDex/AIBI/Resources/aibi-browser-runtime.js": {
-          "sha256": "780f52edf98c80a46a53226080a03f2ee5f9918763af15e43a2ac24e73a583c1",
+          "sha256": "c828ffa29b1efdc7eddda1ef705cad7cb94193baf87911780fe001997b2076fc",
           "source": "packages/runtime/aibi-browser-runtime.js"
         },
         "DenimDex/AIBI/Resources/aibi-providers.json": {
-          "sha256": "e384c630de6a5ce0ef907b3df3cbcf0eea2cbc94668aa62ebbc70423bb079d81",
+          "sha256": "5dc553035f81ff64395e5660bece7d9ca64c5c33af255f960be34159856298d0",
           "source": "packages/providers/aibi-providers.json"
         },
         "DenimDex/AIBI/AIBISession.swift": {
