@@ -560,7 +560,7 @@ final class AIBISession: NSObject, ObservableObject {
             // 프롬프트(와 사진)가 이미 ChatGPT에 소비됐을 수 있다. 재전송·텍스트만 다시 채우기·새 브라우저 열기는
             // 요청을 중복시키거나 사진을 빠뜨릴 수 있으므로, 명확한 실패와 구체적인 사용자 행동으로 끝낸다.
             log("send_timeout", ["attempt": submitAttemptCount, "attachment_verified": 1])
-            failWithError("프롬프트는 전송됐지만 제한 시간 안에 답변이 시작되지 않았습니다. ChatGPT 화면에서 보낸 메시지를 확인한 뒤, 설정의 AI 진단 로그를 공유하고 다시 시도해주세요.")
+            failPreservingBrowser("프롬프트는 전송됐지만 제한 시간 안에 답변이 시작되지 않았습니다. ChatGPT 화면에서 보낸 메시지를 확인한 뒤, 설정의 AI 진단 로그를 공유하고 다시 시도해주세요.")
         } else {
             // 아무것도 전송되지 않았다: 프롬프트와 첨부가 아직 작성기에 남아 있으므로
             // 텍스트만 재전송하지 않고 보이는 브라우저(또는 hiddenOnly 실패 메시지)로 넘긴다.
@@ -650,7 +650,7 @@ final class AIBISession: NSObject, ObservableObject {
                    Date().timeIntervalSince(started) > self.timingProfile.observationTimeout {
                     timer.invalidate()
                     self.log("generation_failed", ["generation_active": 0, "stable_samples": self.stabilityTickCount])
-                    self.failWithError("제한 시간 안에 답변이 도착하지 않았습니다. ChatGPT 화면을 확인한 뒤 다시 시도해주세요.")
+                    self.failPreservingBrowser("제한 시간 안에 답변이 도착하지 않았습니다. 현재 화면을 보존했습니다. 확인한 뒤 다시 시도해주세요.")
                     return
                 }
                 await self.performObservationTick(generation: generation, timer: timer)
@@ -738,6 +738,8 @@ final class AIBISession: NSObject, ObservableObject {
             case .failure(let err):
                 // Only the outcome is recorded; the host's error text never enters the log.
                 log("response_rejected", ["response_length": result.cleanedText.count])
+                // The rejected answer is already on the page; surface it instead of leaving it hidden.
+                if !isVisibleBrowserPresented { promoteCurrentBrowserToVisible() }
                 updatePhase(.failed, message: "결과 검증 실패: \(err.localizedDescription)")
             }
         } else {
@@ -758,6 +760,19 @@ final class AIBISession: NSObject, ObservableObject {
         log("run_failed")
         updatePhase(.failed, message: message)
         destroyHiddenBrowser()
+    }
+
+    /// Same terminal transition as failWithError, but a conversation already exists on the page
+    /// (a sent prompt or a generated answer) that the user may still need to see, so the running
+    /// WebView is promoted instead of destroyed.
+    private func failPreservingBrowser(_ message: String) {
+        stopAllTimers()
+        generationId &+= 1
+        clearPendingAttachmentFiles()
+        self.lastErrorMessage = message
+        log("run_failed")
+        if !isVisibleBrowserPresented { promoteCurrentBrowserToVisible() }
+        updatePhase(.failed, message: message)
     }
 
     private func escalateToVisible(reason: AIBIFallbackReason) {
@@ -997,6 +1012,13 @@ extension AIBISession: WKNavigationDelegate {
         if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled { return }
         log("browser_load_failed")
         failWithError("네트워크 오류: \(nsError.localizedDescription)")
+    }
+
+    /// WebKit silently kills the WebContent process without calling didFail/didFailProvisionalNavigation, so this must invalidate the run the same way other terminal failures do.
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        guard webView === hiddenWebView || webView === visibleWebView else { return }
+        log("browser_load_failed")
+        failWithError("ChatGPT 화면이 중단됐습니다. 다시 시도해주세요.")
     }
 }
 

@@ -169,7 +169,10 @@
           "article[data-turn='assistant']",
           "article[data-testid*='conversation-turn'] [data-message-author-role='assistant']",
           "article[data-testid*='conversation-turn'] .markdown",
-          "div[data-testid*='conversation-turn'] .markdown"
+          "div[data-testid*='conversation-turn'] .markdown",
+          "[data-testid='assistant-message']",
+          "[data-role='assistant']",
+          ".markdown"
         ],
         "preCode": [
           "pre code",
@@ -190,7 +193,10 @@
           "button[data-testid='user-menu-button']",
           "button[data-testid='user-menu']",
           "button[data-testid='accounts-profile-button']",
-          "button[aria-label*='profile menu' i]"
+          "button[aria-label*='profile menu' i]",
+          "button[aria-label*='프로필 메뉴']",
+          "[role='button'][aria-label*='프로필 메뉴']",
+          "[role='button'][aria-label*='profile menu' i]"
         ],
         "challengeIndicator": [
           "#cf-challenge-running",
@@ -264,7 +270,8 @@
         "stopButton": [
           "button[aria-label*='Stop' i]",
           "button[aria-label*='중단' i]",
-          "button[aria-label*='Stop generating' i]"
+          "button[aria-label*='Stop generating' i]",
+          "button[aria-label*='응답 중지']"
         ],
         "assistantMessage": [
           "div[data-is-streaming]",

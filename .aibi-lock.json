@@ -2,18 +2,18 @@
   "schemaVersion": 1,
   "repositories": {
     "denimdex-ios": {
-      "version": "0.5.2",
+      "version": "0.5.4",
       "files": {
         "DenimDex/AIBI/Resources/aibi-browser-runtime.js": {
-          "sha256": "3e10298e7811f533ac56a2de1d5d114a30e022557ee1bf074ca60009d66c9414",
+          "sha256": "51d50e4c7c838d2b4c5b9789d744e8d6cba3c866ad9e14d8116966aa63667241",
           "source": "packages/runtime/aibi-browser-runtime.js"
         },
         "DenimDex/AIBI/Resources/aibi-providers.json": {
-          "sha256": "66abea20a7a8461a3a6780925313bd1b43ab2f0b47311622f1afd4d6dda0b186",
+          "sha256": "c6dcd7b90e256318f9b0b3bda217cce3f297098f94a4b9c8998f3454b682cf80",
           "source": "packages/providers/aibi-providers.json"
         },
         "DenimDex/AIBI/AIBISession.swift": {
-          "sha256": "f62871d8fccfcd590c45a59ea7c20a6b1e180fa3f4bcc6173031f92cf9de05b1",
+          "sha256": "b8eb023db9f37841dee80e0a1892b87073f287f4f512772676bb1e410e49e20c",
           "source": "profiles/denimdex/distribution/apple/AIBISession.swift"
         },
         "DenimDex/AIBI/AIBIModels.swift": {
@@ -28,5 +28,5 @@
     }
   },
   "consumer": "denimdex",
-  "aibiVersion": "0.5.2"
+  "aibiVersion": "0.5.4"
 }

@@ -135,6 +135,31 @@
     return [];
   }
 
+  // ChatGPT may render accessible response headings without legacy turn classes.
+  // Use positive assistant headings and stop before another turn or the composer.
+  function assistantMessages(config) {
+    const known = queryPreferredAll(config.selectors.assistantMessage);
+    if (known.length || config.id !== 'chatgpt') return known;
+    const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6'));
+    const assistantHeading = heading => /^(ChatGPT 답변:|ChatGPT said:)$/.test((heading.textContent || '').trim());
+    const input = queryFirst(config.selectors.promptInput);
+    const result = [];
+    for (const heading of headings.filter(assistantHeading)) {
+      let node = heading.parentElement;
+      for (let depth = 0; node && depth < 5; depth++, node = node.parentElement) {
+        if (node === document.body || node === document.documentElement || (input && node.contains(input))) break;
+        const nested = Array.from(node.querySelectorAll('h1,h2,h3,h4,h5,h6'));
+        if (nested.some(other => other !== heading)) break;
+        const text = (node.textContent || '').trim();
+        if (text.length > (heading.textContent || '').trim().length) {
+          if (!result.includes(node)) result.push(node);
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
   /**
    * Checks if an element is visible and rendered.
    */
@@ -220,7 +245,10 @@
   }
 
   function generationVisible(config) {
-    return queryAll(config.selectors.stopButton).some(isVisible);
+    if (queryAll(config.selectors.stopButton).some(isVisible)) return true;
+    if (config.id !== 'chatgpt') return false;
+    const root = composerRoot(config);
+    return root ? Array.from(root.querySelectorAll('button')).some(button => isVisible(button) && /^(중지|Stop|Stop generating)$/.test((button.textContent || '').trim())) : false;
   }
 
   function sendButton(config) {
@@ -308,7 +336,7 @@
         send_enabled: send && !send.disabled && send.getAttribute('aria-disabled') !== 'true' ? 1 : 0,
         generation_active: generationVisible(config) ? 1 : 0,
         stop_present: generationVisible(config) ? 1 : 0,
-        assistant_message_present: queryPreferredAll(config.selectors.assistantMessage).length ? 1 : 0,
+        assistant_message_present: assistantMessages(config).length ? 1 : 0,
         user_message_present: document.querySelector('[data-message-author-role="user"]') ? 1 : 0,
         uploading_count: root ? queryAll(['[role="progressbar"]', '[aria-busy="true"]', '.animate-spin'], root).filter(isVisible).length : 0,
       };
@@ -381,7 +409,7 @@
    */
   RUNTIME.getBaselineState = function (config) {
     try {
-      const assistantEls = queryPreferredAll(config.selectors.assistantMessage);
+      const assistantEls = assistantMessages(config);
       const isLoginVisible = isVisible(queryFirst(config.selectors.loginIndicator));
       const isChallengeVisible = isVisible(queryFirst(config.selectors.challengeIndicator));
 
@@ -685,7 +713,10 @@
         // Try document.execCommand for native undo-stack & framework integration
         let inserted = false;
         try {
-          inserted = document.execCommand('insertText', false, promptText);
+          // WebKit insertText can apply macOS smart quotes and corrupt structured prompts.
+          // Escape markup so mail or other untrusted text is inserted as literal text only.
+          const literalHTML = String(promptText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\r\n?|\n/g, '<br>');
+          inserted = document.execCommand('insertHTML', false, literalHTML);
         } catch (_) {
           inserted = false;
         }
@@ -812,7 +843,7 @@
   RUNTIME.verifySubmission = function (config, baselineAssistantCount) {
     try {
       const inputEl = queryFirst(config.selectors.promptInput);
-      const assistantEls = queryPreferredAll(config.selectors.assistantMessage);
+      const assistantEls = assistantMessages(config);
 
       let inputCleared = false;
       if (inputEl) {
@@ -892,7 +923,7 @@
       const isGenerating = generationVisible(config);
 
       // 4. Extract Assistant Response
-      const assistantEls = queryPreferredAll(config.selectors.assistantMessage);
+      const assistantEls = assistantMessages(config);
       const baseline = baselineAssistantCount || 0;
       let rawText = '';
       let hasNewAnswer = false;
@@ -904,7 +935,7 @@
         // Prefer <pre><code> code blocks if present
         const preCodeEl = queryFirst(config.selectors.preCode || 'pre code', latestAssistantEl);
         if (preCodeEl && isVisible(preCodeEl)) {
-          rawText = preCodeEl.innerText || preCodeEl.textContent || '';
+          rawText = preCodeEl.textContent || preCodeEl.innerText || ''; 
         } else {
           rawText = latestAssistantEl.innerText || latestAssistantEl.textContent || '';
         }
