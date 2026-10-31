@@ -105,6 +105,8 @@ struct AIBIProviderSelectors: Codable, Equatable {
     var preCode: [String]?
     var errorBanner: [String]
     var loginIndicator: [String]
+    /// 로그인한 계정에서만 보이는 제공사 계정 컨트롤. 로그인 상태 확인(`AIBILoginProbe`)만 쓴다.
+    var authenticatedIndicator: [String]?
     var challengeIndicator: [String]
     var attachmentInput: [String]?
     var attachmentTrigger: [String]?
