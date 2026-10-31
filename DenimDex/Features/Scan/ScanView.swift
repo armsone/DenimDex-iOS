@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 struct ScanView: View {
     private enum ScrollTarget: Hashable {
+        case top
         case analyzeButton
         case progress
     }
@@ -87,6 +88,7 @@ struct ScanView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         header
+                            .id(ScrollTarget.top)
 
                         modeSelector
 
@@ -124,8 +126,8 @@ struct ScanView: View {
                             QuickValueResultCard(
                                 result: result,
                                 onSave: { saveToCollection(result: result, rawJSON: rawJSON) },
-                                onAddRequestedPhoto: { runner.reset() },
-                                onStartOver: { runner.reset() }
+                                onAddRequestedPhoto: { resetResult(using: scrollProxy) },
+                                onStartOver: { resetResult(using: scrollProxy) }
                             )
                         }
 
@@ -299,6 +301,12 @@ struct ScanView: View {
                 proxy.scrollTo(target, anchor: anchor)
             }
         }
+    }
+
+    // 긴 결과 카드가 사라지면 남은 스크롤 위치에 빈 화면이 보이므로, 사진 모음이 보이는 맨 위로 돌아간다.
+    private func resetResult(using proxy: ScrollViewProxy) {
+        runner.reset()
+        scrollTo(.top, anchor: .top, using: proxy)
     }
 
     // MARK: - Header & Mode selector
