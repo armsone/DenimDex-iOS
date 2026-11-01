@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "repositories": {
     "denimdex-ios": {
-      "version": "0.5.5",
+      "version": "0.5.6",
       "files": {
         "DenimDex/AIBI/Resources/aibi-browser-runtime.js": {
           "sha256": "0a155d75e4912bed1066e44a8435d40e95cf2c29a28e782806a33f20817584f7",
@@ -32,5 +32,5 @@
     }
   },
   "consumer": "denimdex",
-  "aibiVersion": "0.5.5"
+  "aibiVersion": "0.5.6"
 }
